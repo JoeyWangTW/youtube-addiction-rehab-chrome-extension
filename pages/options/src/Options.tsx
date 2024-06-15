@@ -1,52 +1,53 @@
 import '@src/Options.css';
-import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { exampleThemeStorage, createStorage } from '@chrome-extension-boilerplate/storage';
-import React, { useState, useEffect } from 'react';
-
-const helpfulVideosStorage = createStorage('helpfulVideos', '');
-const harmfulVideosStorage = createStorage('harmfulVideos', '');
+import { withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
+import InfoTab from './InfoTab';
+import GoalsTab from './GoalsTab';
+import SettingsTab from './SettingsTab';
+import React, { useState } from 'react';
 
 const Options = () => {
-  const theme = useStorageSuspense(exampleThemeStorage);
-  const [helpfulVideos, setHelpfulVideos] = useState('');
-  const [harmfulVideos, setHarmfulVideos] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('settings');
 
-  useEffect(() => {
-    const loadInitialValues = async () => {
-      const initialHelpfulVideos = await helpfulVideosStorage.get();
-      const initialHarmfulVideos = await harmfulVideosStorage.get();
-      setHelpfulVideos(initialHelpfulVideos);
-      setHarmfulVideos(initialHarmfulVideos);
-    };
-    loadInitialValues();
-  }, []);
-
-  const handleSave = async () => {
-    try {
-      await helpfulVideosStorage.set(helpfulVideos);
-      await harmfulVideosStorage.set(harmfulVideos);
-    } catch (error) {
-      console.error('Error saving input values to storage:', error);
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'info':
+        return <InfoTab />;
+      case 'goals':
+        return <GoalsTab />;
+      case 'settings':
+        return <SettingsTab />;
+      default:
+        return <InfoTab />;
     }
   };
 
   return (
-    <div
-      className="App-container"
-      style={{
-        backgroundColor: theme === 'light' ? '#eee' : '#222',
-      }}>
-      <img src={chrome.runtime.getURL('options/logo.svg')} className="App-logo" alt="logo" />
-      <span style={{ color: theme === 'light' ? '#0281dc' : undefined, marginBottom: '10px' }}>Options</span>
-      <div>
-        <label htmlFor="helpful-videos">Helpful Videos:</label>
-        <textarea id="helpful-videos" value={helpfulVideos} onChange={e => setHelpfulVideos(e.target.value)} />
+    <div className="flex flex-col h-screen bg-gray-100">
+      <div className="text-xl font-bold p-4 shadow">YouTube Addiction Rehab</div>
+
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-64 bg-white shadow-md">
+          <div className="flex flex-col">
+            <button
+              className={`p-4 text-left ${activeTab === 'info' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'} transition duration-150 ease-in-out`}
+              onClick={() => setActiveTab('info')}>
+              Info
+            </button>
+            <button
+              className={`p-4 text-left ${activeTab === 'goals' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'} transition duration-150 ease-in-out`}
+              onClick={() => setActiveTab('goals')}>
+              Goals
+            </button>
+            <button
+              className={`p-4 text-left ${activeTab === 'settings' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'} transition duration-150 ease-in-out`}
+              onClick={() => setActiveTab('settings')}>
+              Settings
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 bg-white p-4 overflow-auto">{renderTab()}</div>
       </div>
-      <div>
-        <label htmlFor="harmful-videos">Harmful Videos:</label>
-        <textarea id="harmful-videos" value={harmfulVideos} onChange={e => setHarmfulVideos(e.target.value)} />
-      </div>
-      <button onClick={handleSave}>Save</button>
     </div>
   );
 };

@@ -1,11 +1,15 @@
 import '@src/Popup.css';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { exampleThemeStorage } from '@chrome-extension-boilerplate/storage';
+import { exampleThemeStorage, } from '@chrome-extension-boilerplate/storage';
 
 import { ComponentPropsWithoutRef } from 'react';
 
 const Popup = () => {
   const theme = useStorageSuspense(exampleThemeStorage);
+
+  const openOptionsPage = () => {
+    chrome.runtime.openOptionsPage(); // This opens the options page.
+  };
 
   return (
     <div
@@ -28,6 +32,7 @@ const Popup = () => {
           Learn React!
         </a>
         <ToggleButton>Toggle theme</ToggleButton>
+        <button className="options-button mt-4" onClick={openOptionsPage}>Open Options</button>
       </header>
     </div>
   );
