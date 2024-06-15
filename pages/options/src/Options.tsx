@@ -1,10 +1,34 @@
 import '@src/Options.css';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { exampleThemeStorage } from '@chrome-extension-boilerplate/storage';
-import { ComponentPropsWithoutRef } from 'react';
+import { exampleThemeStorage, createStorage } from '@chrome-extension-boilerplate/storage';
+import React, { useState, useEffect } from 'react';
+
+const helpfulVideosStorage = createStorage('helpfulVideos', '');
+const harmfulVideosStorage = createStorage('harmfulVideos', '');
 
 const Options = () => {
   const theme = useStorageSuspense(exampleThemeStorage);
+  const [helpfulVideos, setHelpfulVideos] = useState('');
+  const [harmfulVideos, setHarmfulVideos] = useState('');
+
+  useEffect(() => {
+    const loadInitialValues = async () => {
+      const initialHelpfulVideos = await helpfulVideosStorage.get();
+      const initialHarmfulVideos = await harmfulVideosStorage.get();
+      setHelpfulVideos(initialHelpfulVideos);
+      setHarmfulVideos(initialHarmfulVideos);
+    };
+    loadInitialValues();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await helpfulVideosStorage.set(helpfulVideos);
+      await harmfulVideosStorage.set(harmfulVideos);
+    } catch (error) {
+      console.error('Error saving input values to storage:', error);
+    }
+  };
 
   return (
     <div
@@ -14,25 +38,16 @@ const Options = () => {
       }}>
       <img src={chrome.runtime.getURL('options/logo.svg')} className="App-logo" alt="logo" />
       <span style={{ color: theme === 'light' ? '#0281dc' : undefined, marginBottom: '10px' }}>Options</span>
-      Edit <code>pages/options/src/Options.tsx</code> and save to reload.
-      <ToggleButton>Toggle theme</ToggleButton>
+      <div>
+        <label htmlFor="helpful-videos">Helpful Videos:</label>
+        <textarea id="helpful-videos" value={helpfulVideos} onChange={e => setHelpfulVideos(e.target.value)} />
+      </div>
+      <div>
+        <label htmlFor="harmful-videos">Harmful Videos:</label>
+        <textarea id="harmful-videos" value={harmfulVideos} onChange={e => setHarmfulVideos(e.target.value)} />
+      </div>
+      <button onClick={handleSave}>Save</button>
     </div>
-  );
-};
-
-const ToggleButton = (props: ComponentPropsWithoutRef<'button'>) => {
-  const theme = useStorageSuspense(exampleThemeStorage);
-  return (
-    <button
-      className={
-        props.className +
-        ' ' +
-        'font-bold mt-4 py-1 px-4 rounded shadow hover:scale-105 ' +
-        (theme === 'light' ? 'bg-white text-black' : 'bg-black text-white')
-      }
-      onClick={exampleThemeStorage.toggle}>
-      {props.children}
-    </button>
   );
 };
 
