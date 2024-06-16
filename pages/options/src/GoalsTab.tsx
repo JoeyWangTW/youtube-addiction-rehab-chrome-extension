@@ -1,9 +1,8 @@
-import '@src/Popup.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
 import { savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
 
-const GoalsEditor = () => {
+const GoalsTab = () => {
   const { helpful, harmful } = useStorageSuspense(savedGoalsStorage);
   const [helpfulVideos, setHelpfulVideos] = useState(helpful);
   const [harmfulVideos, setHarmfulVideos] = useState(harmful);
@@ -29,13 +28,14 @@ const GoalsEditor = () => {
 
   return (
     <div className="p-4">
+      <h1 className="text-3xl font-bold mb-8">Goals</h1>
       <div className="mb-4">
         <label htmlFor="helpful-videos" className="block text-sm font-medium text-gray-700">
           Watch Helpful Videos:
         </label>
         <textarea
           id="helpful-videos"
-          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-300 shadow-sm resize-none
+          className="mt-1 p-2 block w-96 border-2 rounded-md border-gray-300 shadow-sm resize-none
               focus:border-gray-700 focus:outline-none"
           value={helpfulVideos}
           onChange={e => setHelpfulVideos(e.target.value)}
@@ -48,7 +48,7 @@ const GoalsEditor = () => {
         </label>
         <textarea
           id="harmful-videos"
-          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-300 shadow-sm resize-none
+          className="mt-1 p-2 block w-96 border-2 rounded-md border-gray-300 shadow-sm resize-none
               focus:border-gray-700 focus:outline-none"
           value={harmfulVideos}
           onChange={e => setHarmfulVideos(e.target.value)}
@@ -67,23 +67,4 @@ const GoalsEditor = () => {
   );
 };
 
-const Popup = () => {
-  const openOptionsPage = () => {
-    chrome.runtime.openOptionsPage(); // This opens the options page.
-  };
-
-  return (
-    <div>
-      <GoalsEditor />
-      <div className="border-t-1 border border-gray-200">
-        <button
-          onClick={openOptionsPage}
-          className="block text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-          Open Options
-        </button>
-      </div>
-    </div>
-  );
-};
-
-export default withErrorBoundary(withSuspense(Popup, <div> Loading ... </div>), <div> Error Occur </div>);
+export default withErrorBoundary(withSuspense(GoalsTab, <div>Loading...</div>), <div>Error Occurred</div>);
