@@ -1,56 +1,88 @@
 import '@src/Popup.css';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { exampleThemeStorage, } from '@chrome-extension-boilerplate/storage';
+import { savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
 
-import { ComponentPropsWithoutRef } from 'react';
+const GoalsEditor = () => {
+  const { helpful, harmful } = useStorageSuspense(savedGoalsStorage);
+  const [helpfulVideos, setHelpfulVideos] = useState(helpful);
+  const [harmfulVideos, setHarmfulVideos] = useState(harmful);
+  const [showSavedMessage, setShowSavedMessage] = useState(false);
+
+  const initialGoals = useRef({ helpful, harmful });
+
+  useEffect(() => {
+    // Update the ref when the component mounts
+    initialGoals.current = { helpful, harmful };
+  }, [helpful, harmful]);
+
+  const saveGoals = async () => {
+    await savedGoalsStorage.set({ helpful: helpfulVideos, harmful: harmfulVideos });
+    initialGoals.current = { helpful: helpfulVideos, harmful: harmfulVideos };
+    setShowSavedMessage(true);
+    setTimeout(() => setShowSavedMessage(false), 3000);
+  };
+
+  const hasChanges = () => {
+    return helpfulVideos !== initialGoals.current.helpful || harmfulVideos !== initialGoals.current.harmful;
+  };
+
+  return (
+    <div className="p-4">
+      <div className="mb-4">
+        <label htmlFor="helpful-videos" className="block text-sm font-medium text-gray-700">
+          Watch Helpful Videos:
+        </label>
+        <textarea
+          id="helpful-videos"
+          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-300 shadow-sm resize-none
+              focus:border-gray-700 focus:outline-none"
+          value={helpfulVideos}
+          onChange={e => setHelpfulVideos(e.target.value)}
+          rows={5}
+        />
+      </div>
+      <div className="mb-4">
+        <label htmlFor="harmful-videos" className="block text-sm font-medium text-gray-700">
+          Avoid Harmful Videos:
+        </label>
+        <textarea
+          id="harmful-videos"
+          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-300 shadow-sm resize-none
+              focus:border-gray-700 focus:outline-none"
+          value={harmfulVideos}
+          onChange={e => setHarmfulVideos(e.target.value)}
+          rows={5}
+        />
+      </div>
+      {hasChanges() && (
+        <button
+          className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          onClick={saveGoals}>
+          Save Goals
+        </button>
+      )}
+      {showSavedMessage && <div className="mt-4 py-2 px-4 text-sm text-green-500">Saved!</div>}
+    </div>
+  );
+};
 
 const Popup = () => {
-  const theme = useStorageSuspense(exampleThemeStorage);
-
   const openOptionsPage = () => {
     chrome.runtime.openOptionsPage(); // This opens the options page.
   };
 
   return (
-    <div
-      className="App"
-      style={{
-        backgroundColor: theme === 'light' ? '#eee' : '#222',
-      }}>
-      <header className="App-header" style={{ color: theme === 'light' ? '#222' : '#eee' }}>
-        <img src={chrome.runtime.getURL('newtab/logo.svg')} className="App-logo" alt="logo" />
-
-        <p>
-          Edit <code>pages/popup/src/Popup.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: theme === 'light' ? '#0281dc' : undefined, marginBottom: '10px' }}>
-          Learn React!
-        </a>
-        <ToggleButton>Toggle theme</ToggleButton>
-        <button className="options-button mt-4" onClick={openOptionsPage}>Open Options</button>
-      </header>
+    <div>
+      <GoalsEditor />
+      <div className="border-t-1 border border-gray-200">
+        <button
+          onClick={openOptionsPage}
+          className="block text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+          Open Options
+        </button>
+      </div>
     </div>
-  );
-};
-
-const ToggleButton = (props: ComponentPropsWithoutRef<'button'>) => {
-  const theme = useStorageSuspense(exampleThemeStorage);
-  return (
-    <button
-      className={
-        props.className +
-        ' ' +
-        'font-bold mt-4 py-1 px-4 rounded shadow hover:scale-105 ' +
-        (theme === 'light' ? 'bg-white text-black' : 'bg-black text-white')
-      }
-      onClick={exampleThemeStorage.toggle}>
-      {props.children}
-    </button>
   );
 };
 
