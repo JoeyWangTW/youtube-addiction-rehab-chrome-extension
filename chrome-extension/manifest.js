@@ -44,6 +44,12 @@ const manifest = Object.assign({
       css: ['content.css'], // public folder
     },
   ],
+  web_accessible_resources: [
+    {
+      resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],
+      matches: ['*://*/*'],
+    },
+  ],
 });
 
 export default manifest;

@@ -1,5 +1,12 @@
-import { toggleTheme } from '@lib/toggleTheme';
+document.addEventListener('yt-page-data-updated', function () {
+    const metaDataElement = document.querySelector('ytd-watch-metadata');
 
-console.log('content script loaded');
+    if (metaDataElement) {
+        // Get the video title text
+        const videoTitle = metaDataElement.querySelector('yt-formatted-string')?.textContent;
 
-void toggleTheme();
+        console.log(videoTitle);
+        // Send the video title to the background script
+        //chrome.runtime.sendMessage({ type: 'newVideoLoaded', videoTitle });
+    }
+});
