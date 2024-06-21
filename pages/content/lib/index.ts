@@ -1,3 +1,4 @@
+/*
 document.addEventListener('yt-page-data-updated', async () => {
     const metaDataElement = document.querySelector('ytd-watch-metadata');
     console.log(document.querySelector('#related #items #video-title')?.textContent);
@@ -12,3 +13,4 @@ document.addEventListener('yt-page-data-updated', async () => {
         console.log(response);
     }
 });
+*/
