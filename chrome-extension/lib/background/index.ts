@@ -1,9 +1,54 @@
 import 'webextension-polyfill';
-import { exampleThemeStorage } from '@chrome-extension-boilerplate/storage';
+import { savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
+import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
+import { fetchChatCompletion, formatPrompt } from './openAIHelpers';
 
-exampleThemeStorage.get().then(theme => {
-  console.log('theme', theme);
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    (async () => {
+        if (message.type === 'newVideoLoaded') {
+            const videoTitle = message.videoTitle;
+            if (videoTitle) {
+                console.log('Received video title in background:', videoTitle);
+                // You can perform further actions here, such as:
+                const analysisResult = await analyzeVideoTitle(videoTitle);
+                // Send decision back to content script
+                console.log('Result', analysisResult);
+                sendResponse(analysisResult);
+            } else {
+                console.log('No title received or title is empty.');
+            }
+        }
+    })();
+
+    // Important! Return true to indicate you want to send a response asynchronously
+    return true;
 });
 
-console.log('background loaded');
-console.log("Edit 'apps/chrome-extension/lib/background/index.ts' and save to reload.");
+async function analyzeVideoTitle(title: string) {
+    const { helpful, harmful } = await savedGoalsStorage.get();
+    const { openAIApiKey, blockerEnabled } = await savedSettingsStorage.get();
+    // Placeholder for title analysis logic
+    console.log('Analyzing title:', title);
+    console.log(helpful, harmful, openAIApiKey, blockerEnabled);
+    // Example of a possible API call to analyze the title
+    // This can be an internal logic or an external API call
+    // Here we just log to the console for demonstration
+
+    if (blockerEnabled) {
+        const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a video title they are watching.
+        return a json response including two items.
+        1. evaluation_rating ( three possible options: "relevant", "not_sure", "irrelevant", "avoid")
+        2. evaluation_context ( one sentence about what's the video about and the relavency for user’s goal and the video)
+        Make sure you go thorugh all the user's goal, and rate relevancy based on all of them.
+        In the evaluation_context, it should only show one sentence, the sentence should be user facing. And follow the instruction for the tone.
+        If rating is "relavent", make the tone positive.
+        If rating is "not_sure", make the tone neutral.
+        If rating is "irrelavent", try use an encouraging tone to let them go back on track.
+        If the user is "avoid", try to use a teasing but asserting tone to let them know they are watching something they should avoid.
+        Assume user understand the language of the video. Also return the evaluation_context in the same lanugage as the user's goal.`;
+        const prompt = `Given the user's white list watch catagory: "${helpful}", evaluate if the following video title is relevant, should be avoided, or not sure: "${title}".`;
+        const result = await fetchChatCompletion(openAIApiKey, formatPrompt(systemPrompt, prompt));
+        const analysisResult = JSON.parse(result);
+        return analysisResult;
+    }
+}

@@ -1,5 +1,6 @@
-document.addEventListener('yt-page-data-updated', function () {
+document.addEventListener('yt-page-data-updated', async () => {
     const metaDataElement = document.querySelector('ytd-watch-metadata');
+    console.log(document.querySelector('#related #items #video-title')?.textContent);
 
     if (metaDataElement) {
         // Get the video title text
@@ -7,6 +8,7 @@ document.addEventListener('yt-page-data-updated', function () {
 
         console.log(videoTitle);
         // Send the video title to the background script
-        //chrome.runtime.sendMessage({ type: 'newVideoLoaded', videoTitle });
+        const response = await chrome.runtime.sendMessage({ type: 'newVideoLoaded', videoTitle });
+        console.log(response);
     }
 });
