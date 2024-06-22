@@ -34,8 +34,7 @@ async function analyzeVideoTitle(title: string) {
     // This can be an internal logic or an external API call
     // Here we just log to the console for demonstration
 
-    if (blockerEnabled) {
-        const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a video title they are watching.
+    const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a video title they are watching.
         return a json response including two items.
         1. evaluation_rating ( three possible options: "relevant", "not_sure", "irrelevant", "avoid")
         2. evaluation_context ( one sentence about what's the video about and the relavency for user’s goal and the video)
@@ -46,9 +45,8 @@ async function analyzeVideoTitle(title: string) {
         If rating is "irrelavent", try use an encouraging tone to let them go back on track.
         If the user is "avoid", try to use a teasing but asserting tone to let them know they are watching something they should avoid.
         Assume user understand the language of the video. Also also return the evaluation_context in English`;
-        const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate if the following video title is relevant, should be avoided, or not sure: "${title}".`;
-        const result = await fetchChatCompletion(openAIApiKey, formatPrompt(systemPrompt, prompt));
-        const analysisResult = JSON.parse(result);
-        return analysisResult;
-    }
+    const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate if the following video title is relevant, should be avoided, or not sure: "${title}".`;
+    const result = await fetchChatCompletion(openAIApiKey, formatPrompt(systemPrompt, prompt));
+    const analysisResult = JSON.parse(result);
+    return analysisResult;
 }

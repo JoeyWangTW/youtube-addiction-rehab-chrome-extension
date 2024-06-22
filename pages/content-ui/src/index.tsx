@@ -133,6 +133,7 @@ function removeElementsByIds(ids) {
     }
   });
 }
+
 document.addEventListener('yt-navigate-start', () => {
   shouldPauseVideo = true;
 });
@@ -147,6 +148,11 @@ document.addEventListener('yt-page-data-updated', async () => {
   if (blockerEnabled) {
     hidePrimaryArea();
     addAnalyzingSpinner(primaryElement, 'analyzing-video');
+    shouldPauseVideo = true;
+  } else {
+    const videoPlayer = document.querySelector('video.html5-main-video');
+    shouldPauseVideo = false;
+    videoPlayer.play();
   }
 
   if (metaDataElement) {
@@ -161,13 +167,15 @@ document.addEventListener('yt-page-data-updated', async () => {
       removeAnalyzingSpinner('analyzing-video');
       addWarningForVideo(document.querySelector('#primary'), 'video-warning', response);
     } else {
-      console.log('relavant');
-      removeAnalyzingSpinner('analyzing-video');
-      showPrimaryArea();
+      console.warn('response', response);
+      if (blockerEnabled) {
+        removeAnalyzingSpinner('analyzing-video');
+        showPrimaryArea();
+        const videoPlayer = document.querySelector('video.html5-main-video');
+        shouldPauseVideo = false;
+        videoPlayer.play();
+      }
       addTitleEval(response, document.querySelector('ytd-watch-metadata #title'));
-      const videoPlayer = document.querySelector('video.html5-main-video');
-      shouldPauseVideo = false;
-      videoPlayer.play();
     }
   }
 });
