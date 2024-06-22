@@ -38,6 +38,7 @@ const manifest = Object.assign({
     {
       matches: ['*://www.youtube.com/*'],
       js: ['content-ui/index.iife.js'],
+      run_at: 'document_start',
     },
     {
       matches: ['*://www.youtube.com/*'],
