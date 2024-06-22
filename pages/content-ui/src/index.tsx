@@ -220,6 +220,9 @@ async function analyzedRecommendation() {
 
 document.addEventListener('yt-page-data-updated', async () => {
   if (!window.location.pathname.includes('/watch')) {
+    const videoPlayer = document.querySelector('video.html5-main-video');
+    shouldPauseVideo = false;
+    videoPlayer.play();
     return; // Exit if not on a watch page
   }
 
