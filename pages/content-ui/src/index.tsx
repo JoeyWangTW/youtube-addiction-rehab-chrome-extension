@@ -140,7 +140,7 @@ document.addEventListener('yt-navigate-start', () => {
 
 document.addEventListener('yt-page-data-updated', async () => {
   removeElementsByIds(['analyzing-video', 'video-warning', 'title-eval']);
-  const { blockerEnabled } = await savedSettingsStorage.get();
+  const { blockerEnabled, videoEvalEnabled } = await savedSettingsStorage.get();
   const metaDataElement = document.querySelector('ytd-watch-metadata');
   const primaryElement = document.querySelector('#primary');
   primaryElement.style.position = 'relative';
@@ -155,7 +155,7 @@ document.addEventListener('yt-page-data-updated', async () => {
     videoPlayer.play();
   }
 
-  if (metaDataElement) {
+  if (metaDataElement && videoEvalEnabled) {
     // Get the video title text
     const videoTitle = metaDataElement.querySelector('yt-formatted-string')?.textContent;
 
@@ -167,7 +167,6 @@ document.addEventListener('yt-page-data-updated', async () => {
       removeAnalyzingSpinner('analyzing-video');
       addWarningForVideo(document.querySelector('#primary'), 'video-warning', response);
     } else {
-      console.warn('response', response);
       if (blockerEnabled) {
         removeAnalyzingSpinner('analyzing-video');
         showPrimaryArea();

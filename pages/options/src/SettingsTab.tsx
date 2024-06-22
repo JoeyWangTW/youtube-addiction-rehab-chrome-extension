@@ -3,23 +3,32 @@ import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-ext
 import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 
 const SettingsTab = () => {
-  const { openAIApiKey, blockerEnabled } = useStorageSuspense(savedSettingsStorage);
+  const { openAIApiKey, blockerEnabled, videoEvalEnabled } = useStorageSuspense(savedSettingsStorage);
   const [apiKey, setApiKey] = useState<string>(openAIApiKey);
   const [aiBlockerEnabled, setAiBlockerEnabled] = useState<boolean>(blockerEnabled);
+  const [evalEnabled, setEvalEnabled] = useState<boolean>(videoEvalEnabled);
   const [showSavedMessage, setShowSavedMessage] = useState(false);
 
   // Ref to store the initial values for comparison
-  const initialSettings = useRef({ openAIApiKey, blockerEnabled });
+  const initialSettings = useRef({ openAIApiKey, blockerEnabled, videoEvalEnabled });
 
   useEffect(() => {
     // Update the ref when the component mounts
-    initialSettings.current = { openAIApiKey, blockerEnabled };
-  }, [openAIApiKey, blockerEnabled]);
+    initialSettings.current = { openAIApiKey, blockerEnabled, videoEvalEnabled };
+  }, [openAIApiKey, blockerEnabled, videoEvalEnabled]);
 
   const saveSettings = async () => {
-    await savedSettingsStorage.set({ openAIApiKey: apiKey, blockerEnabled: aiBlockerEnabled });
+    await savedSettingsStorage.set({
+      openAIApiKey: apiKey,
+      blockerEnabled: aiBlockerEnabled,
+      videoEvalEnabled: evalEnabled,
+    });
     // Update initial settings after save
-    initialSettings.current = { openAIApiKey: apiKey, blockerEnabled: aiBlockerEnabled };
+    initialSettings.current = {
+      openAIApiKey: apiKey,
+      blockerEnabled: aiBlockerEnabled,
+      videoEvalEnabled: evalEnabled,
+    };
     setShowSavedMessage(true);
     setTimeout(() => setShowSavedMessage(false), 3000);
   };
@@ -27,7 +36,9 @@ const SettingsTab = () => {
   // Function to determine if the current state differs from the initial state
   const hasChanges = () => {
     return (
-      apiKey !== initialSettings.current.openAIApiKey || aiBlockerEnabled !== initialSettings.current.blockerEnabled
+      apiKey !== initialSettings.current.openAIApiKey ||
+      aiBlockerEnabled !== initialSettings.current.blockerEnabled ||
+      evalEnabled !== initialSettings.current.videoEvalEnabled
     );
   };
 
@@ -53,9 +64,28 @@ const SettingsTab = () => {
             type="checkbox"
             className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
             checked={aiBlockerEnabled}
-            onChange={() => setAiBlockerEnabled(!aiBlockerEnabled)}
+            onChange={() => {
+              setAiBlockerEnabled(!aiBlockerEnabled);
+              if (!aiBlockerEnabled) {
+                setEvalEnabled(true);
+              }
+            }}
           />
           <span>Enable AI Blocker</span>
+        </label>
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="eval" className="flex items-center space-x-2">
+          <input
+            id="eval"
+            type="checkbox"
+            disabled={aiBlockerEnabled}
+            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+            checked={evalEnabled}
+            onChange={() => setEvalEnabled(!evalEnabled)}
+          />
+          <span>Enable Video Evaluation</span>
         </label>
       </div>
       {hasChanges() && (
