@@ -139,6 +139,10 @@ document.addEventListener('yt-navigate-start', () => {
 });
 
 document.addEventListener('yt-page-data-updated', async () => {
+  if (!window.location.pathname.includes('/watch')) {
+    return; // Exit if not on a watch page
+  }
+
   removeElementsByIds(['analyzing-video', 'video-warning', 'title-eval']);
   const { blockerEnabled, videoEvalEnabled } = await savedSettingsStorage.get();
   const metaDataElement = document.querySelector('ytd-watch-metadata');
