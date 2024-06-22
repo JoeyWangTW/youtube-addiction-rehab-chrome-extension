@@ -138,13 +138,7 @@ document.addEventListener('yt-navigate-start', () => {
   shouldPauseVideo = true;
 });
 
-document.addEventListener('yt-page-data-updated', async () => {
-  if (!window.location.pathname.includes('/watch')) {
-    return; // Exit if not on a watch page
-  }
-
-  removeElementsByIds(['analyzing-video', 'video-warning', 'title-eval']);
-  const { blockerEnabled, videoEvalEnabled } = await savedSettingsStorage.get();
+async function analyzeCurrentVideo(blockerEnabled, videoEvalEnabled) {
   const metaDataElement = document.querySelector('ytd-watch-metadata');
   const primaryElement = document.querySelector('#primary');
   primaryElement.style.position = 'relative';
@@ -180,5 +174,61 @@ document.addEventListener('yt-page-data-updated', async () => {
       }
       addTitleEval(response, document.querySelector('ytd-watch-metadata #title'));
     }
+  }
+}
+
+async function evaluateAndFilterVideos(videoRenderers, videoTitles) {
+  console.log('send recommendationLoaded');
+  const evaluationResults = await chrome.runtime.sendMessage({ type: 'recommendationsLoaded', videoTitles });
+
+  console.log(evaluationResults);
+  videoRenderers.forEach((renderer, index) => {
+    if (!evaluationResults.result[index]) {
+      // Assuming true means show the video
+      renderer.style.display = 'none';
+    }
+  });
+}
+
+async function analyzedRecommendation() {
+  const secondaryInnerElement = document.querySelector('#secondary-inner');
+  secondaryInnerElement.style.opacity = 0;
+  const observer = new MutationObserver((mutations, obs) => {
+    const videoRecommendations = document.querySelectorAll('ytd-compact-video-renderer');
+    if (videoRecommendations.length >= 20) {
+      const videoTitles = [];
+
+      videoRecommendations.forEach(renderer => {
+        const titleElement = renderer.querySelector('#video-title');
+        if (titleElement) {
+          const videoTitle = titleElement.textContent.trim(); // Get the text and trim whitespace
+          videoTitles.push(videoTitle);
+        }
+      });
+      obs.disconnect();
+      evaluateAndFilterVideos(videoRecommendations, videoTitles);
+
+      secondaryInnerElement.style.opacity = 1;
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+}
+
+document.addEventListener('yt-page-data-updated', async () => {
+  if (!window.location.pathname.includes('/watch')) {
+    return; // Exit if not on a watch page
+  }
+
+  removeElementsByIds(['analyzing-video', 'video-warning', 'title-eval']);
+  const { blockerEnabled, videoEvalEnabled, filterEnabled } = await savedSettingsStorage.get();
+  if (blockerEnabled || videoEvalEnabled) {
+    analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
+  }
+  if (filterEnabled) {
+    analyzedRecommendation();
   }
 });

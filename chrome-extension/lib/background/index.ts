@@ -18,11 +18,44 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
                 console.log('No title received or title is empty.');
             }
         }
+
+        if (message.type === 'recommendationsLoaded') {
+            const videoTitles = message.videoTitles;
+            if (videoTitles) {
+                console.log('Received recommended video titles in background:', videoTitles);
+                // You can perform further actions here, such as:
+                const filterResult = await analyzeRecommendations(videoTitles);
+                // Send decision back to content script
+                console.log('Filter', filterResult);
+                sendResponse(filterResult);
+            } else {
+                console.log('No titles received or title is empty.');
+            }
+        }
     })();
 
     // Important! Return true to indicate you want to send a response asynchronously
     return true;
 });
+
+async function analyzeRecommendations(titles: string) {
+    const { helpful, harmful } = await savedGoalsStorage.get();
+    const { openAIApiKey } = await savedSettingsStorage.get();
+
+    const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a list of video titles they've got.
+        The list is split with ","
+        Evaluate each video and determine if it should be shown to the user or not, true is should show false is hide it from user.
+        return a json response including two item "result" & "reason",
+        "result" contains a list of boolean values mapping back to the original list,
+        "reason" is a list of one sentence reason why each video is shown or hidden,
+        The lists should be the same length as the original list
+        `;
+    const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate the following video titles: "${titles}".`;
+    console.log(prompt);
+    const result = await fetchChatCompletion(openAIApiKey, formatPrompt(systemPrompt, prompt));
+    const analysisResult = JSON.parse(result);
+    return analysisResult;
+}
 
 async function analyzeVideoTitle(title: string) {
     const { helpful, harmful } = await savedGoalsStorage.get();
