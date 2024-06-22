@@ -3,31 +3,34 @@ import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-ext
 import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 
 const SettingsTab = () => {
-  const { openAIApiKey, blockerEnabled, videoEvalEnabled } = useStorageSuspense(savedSettingsStorage);
+  const { openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled } = useStorageSuspense(savedSettingsStorage);
   const [apiKey, setApiKey] = useState<string>(openAIApiKey);
-  const [aiBlockerEnabled, setAiBlockerEnabled] = useState<boolean>(blockerEnabled);
-  const [evalEnabled, setEvalEnabled] = useState<boolean>(videoEvalEnabled);
+  const [blocker, setBlocker] = useState<boolean>(blockerEnabled);
+  const [videoEval, setVideoEval] = useState<boolean>(videoEvalEnabled);
+  const [filter, setFilter] = useState<boolean>(filterEnabled);
   const [showSavedMessage, setShowSavedMessage] = useState(false);
 
   // Ref to store the initial values for comparison
-  const initialSettings = useRef({ openAIApiKey, blockerEnabled, videoEvalEnabled });
+  const initialSettings = useRef({ openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled });
 
   useEffect(() => {
     // Update the ref when the component mounts
-    initialSettings.current = { openAIApiKey, blockerEnabled, videoEvalEnabled };
-  }, [openAIApiKey, blockerEnabled, videoEvalEnabled]);
+    initialSettings.current = { openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled };
+  }, [openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled]);
 
   const saveSettings = async () => {
     await savedSettingsStorage.set({
       openAIApiKey: apiKey,
-      blockerEnabled: aiBlockerEnabled,
-      videoEvalEnabled: evalEnabled,
+      blockerEnabled: blocker,
+      videoEvalEnabled: videoEval,
+      filterEnabled: filter,
     });
     // Update initial settings after save
     initialSettings.current = {
       openAIApiKey: apiKey,
-      blockerEnabled: aiBlockerEnabled,
-      videoEvalEnabled: evalEnabled,
+      blockerEnabled: blocker,
+      videoEvalEnabled: videoEval,
+      filterEnabled: filter,
     };
     setShowSavedMessage(true);
     setTimeout(() => setShowSavedMessage(false), 3000);
@@ -37,8 +40,9 @@ const SettingsTab = () => {
   const hasChanges = () => {
     return (
       apiKey !== initialSettings.current.openAIApiKey ||
-      aiBlockerEnabled !== initialSettings.current.blockerEnabled ||
-      evalEnabled !== initialSettings.current.videoEvalEnabled
+      blocker !== initialSettings.current.blockerEnabled ||
+      videoEval !== initialSettings.current.videoEvalEnabled ||
+      filter !== initialSettings.current.filterEnabled
     );
   };
 
@@ -57,17 +61,32 @@ const SettingsTab = () => {
           onChange={e => setApiKey(e.target.value)}
         />
       </div>
+
+      <div className="mb-4">
+        <label htmlFor="ai-filter" className="flex items-center space-x-2">
+          <input
+            id="ai-filter"
+            type="checkbox"
+            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+            checked={filter}
+            onChange={() => {
+              setFilter(!filter);
+            }}
+          />
+          <span>Enable AI Filter</span>
+        </label>
+      </div>
       <div className="mb-4">
         <label htmlFor="ai-blocker" className="flex items-center space-x-2">
           <input
             id="ai-blocker"
             type="checkbox"
             className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
-            checked={aiBlockerEnabled}
+            checked={blocker}
             onChange={() => {
-              setAiBlockerEnabled(!aiBlockerEnabled);
-              if (!aiBlockerEnabled) {
-                setEvalEnabled(true);
+              setBlocker(!blocker);
+              if (!blocker) {
+                setVideoEval(true);
               }
             }}
           />
@@ -76,16 +95,16 @@ const SettingsTab = () => {
       </div>
 
       <div className="mb-4">
-        <label htmlFor="eval" className="flex items-center space-x-2">
+        <label htmlFor="videoEval" className="flex items-center space-x-2">
           <input
-            id="eval"
+            id="videoEval"
             type="checkbox"
-            disabled={aiBlockerEnabled}
+            disabled={blocker}
             className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
-            checked={evalEnabled}
-            onChange={() => setEvalEnabled(!evalEnabled)}
+            checked={videoEval}
+            onChange={() => setVideoEval(!videoEval)}
           />
-          <span>Enable Video Evaluation</span>
+          <span>Enable Video VideoEvaluation</span>
         </label>
       </div>
       {hasChanges() && (
