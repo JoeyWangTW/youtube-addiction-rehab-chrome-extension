@@ -45,8 +45,8 @@ async function analyzeVideoTitle(title: string) {
         If rating is "not_sure", make the tone neutral.
         If rating is "irrelavent", try use an encouraging tone to let them go back on track.
         If the user is "avoid", try to use a teasing but asserting tone to let them know they are watching something they should avoid.
-        Assume user understand the language of the video. Also return the evaluation_context in the same lanugage as the user's goal.`;
-        const prompt = `Given the user's white list watch catagory: "${helpful}", evaluate if the following video title is relevant, should be avoided, or not sure: "${title}".`;
+        Assume user understand the language of the video. Also also return the evaluation_context in English`;
+        const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate if the following video title is relevant, should be avoided, or not sure: "${title}".`;
         const result = await fetchChatCompletion(openAIApiKey, formatPrompt(systemPrompt, prompt));
         const analysisResult = JSON.parse(result);
         return analysisResult;

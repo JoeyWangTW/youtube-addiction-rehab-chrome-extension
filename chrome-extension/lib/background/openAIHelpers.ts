@@ -17,7 +17,8 @@ export async function fetchChatCompletion(apiKey: string, messages: any[]): Prom
     try {
         const url = 'https://api.openai.com/v1/chat/completions';
         const data = {
-            model: 'gpt-3.5-turbo', // Specify the model you are using; adjust as necessary
+            model: 'gpt-4o', // Specify the model you are using; adjust as necessary
+            response_format: { type: 'json_object' },
             messages: messages, // This should be structured according to OpenAI's requirements
         };
         const headers = {
