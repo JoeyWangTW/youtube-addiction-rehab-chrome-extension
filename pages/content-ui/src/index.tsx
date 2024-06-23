@@ -4,8 +4,9 @@ import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 // eslint-disable-next-line
 // @ts-ignore
 import tailwindcssOutput from '@src/tailwind-output.css?inline';
+import { ReactElement } from 'react';
 
-function addCoveredComponent(node, id, component) {
+function addCoveredComponent(node: HTMLElement, id: string, component: ReactElement): void {
   // Create new component if it does not exist
   const root = document.createElement('div');
   root.id = id;
@@ -18,8 +19,8 @@ function addCoveredComponent(node, id, component) {
   root.style.position = 'absolute';
   root.style.width = '100%';
   root.style.height = '100%';
-  root.style.left = 0;
-  root.style.top = 0;
+  root.style.left = '0';
+  root.style.top = '0';
 
   rootIntoShadow.style.width = '100%';
   rootIntoShadow.style.height = '100%';
@@ -35,19 +36,24 @@ function addCoveredComponent(node, id, component) {
   createRoot(rootIntoShadow).render(component);
 }
 
-function addAnalyzingSpinner(node, id) {
+function addAnalyzingSpinner(node: HTMLElement, id: string) {
   addCoveredComponent(node, id, <Analyzing />);
 }
 
-function removeAnalyzingSpinner(id) {
+function removeAnalyzingSpinner(id: string) {
   const root = document.getElementById(id);
 
   if (root) {
-    root.parentNode.removeChild(root);
+    root.parentNode?.removeChild(root);
   }
 }
 
-function addWarningForVideo(node, id, result) {
+interface EvaluationResult {
+  evaluation_rating: string;
+  evaluation_context: string;
+}
+
+function addWarningForVideo(node: HTMLElement, id: string, result: EvaluationResult) {
   addCoveredComponent(
     node,
     id,
@@ -57,14 +63,16 @@ function addWarningForVideo(node, id, result) {
   );
 }
 
-function addTitleEval(result, node) {
+function addTitleEval(result: EvaluationResult, node: HTMLElement) {
   const existingRoot = document.getElementById('title-eval');
 
   if (existingRoot) {
     // Update the existing component if it already exists
     const shadowRoot = existingRoot.shadowRoot;
-    const contentComponent = shadowRoot.getElementById('shadow-root');
-    createRoot(contentComponent).render(<TitleEvalResult result={result} />);
+    const contentComponent = shadowRoot?.getElementById('shadow-root');
+    if (contentComponent) {
+      createRoot(contentComponent).render(<TitleEvalResult result={result} />);
+    }
   } else {
     // Create new component if it does not exist
     const root = document.createElement('div');
@@ -93,19 +101,18 @@ const observer = new MutationObserver(mutations => {
   mutations.forEach(mutation => {
     mutation.addedNodes.forEach(node => {
       if (node.nodeName.toLowerCase() === 'video') {
-        // Detected a video element being added to the DOM
-
-        node.addEventListener('play', () => {
+        const videoNode = node as HTMLVideoElement;
+        videoNode.addEventListener('play', () => {
           if (shouldPauseVideo) {
             console.log('Video started playing, pausing video...');
-            node.pause(); // This pauses the video when it starts playing
+            videoNode.pause(); // This pauses the video when it starts playing
             observer.disconnect();
           }
         });
 
-        if (!node.paused && shouldPauseVideo) {
+        if (!videoNode.paused && shouldPauseVideo) {
           console.log('Video is already playing, pausing immediately...');
-          node.pause();
+          videoNode.pause();
           observer.disconnect();
         }
       }
@@ -116,20 +123,24 @@ const observer = new MutationObserver(mutations => {
 observer.observe(document, { childList: true, subtree: true });
 
 function hidePrimaryArea() {
-  const primaryInnerElement = document.querySelector('#primary-inner');
-  primaryInnerElement.style.opacity = 0;
+  const primaryInnerElement = document.querySelector('#primary-inner') as HTMLElement;
+  if (primaryInnerElement) {
+    primaryInnerElement.style.opacity = '0';
+  }
 }
 
 function showPrimaryArea() {
-  const primaryInnerElement = document.querySelector('#primary-inner');
-  primaryInnerElement.style.opacity = 1;
+  const primaryInnerElement = document.querySelector('#primary-inner') as HTMLElement;
+  if (primaryInnerElement) {
+    primaryInnerElement.style.opacity = '1';
+  }
 }
 
-function removeElementsByIds(ids) {
+function removeElementsByIds(ids: string[]) {
   ids.forEach(id => {
     const element = document.getElementById(id);
     if (element) {
-      element.parentNode.removeChild(element);
+      element.parentNode?.removeChild(element);
     }
   });
 }
@@ -138,19 +149,24 @@ document.addEventListener('yt-navigate-start', () => {
   shouldPauseVideo = true;
 });
 
-async function analyzeCurrentVideo(blockerEnabled, videoEvalEnabled) {
+async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: boolean) {
   const metaDataElement = document.querySelector('ytd-watch-metadata');
-  const primaryElement = document.querySelector('#primary');
-  primaryElement.style.position = 'relative';
+  const primaryElement = document.querySelector('#primary') as HTMLElement;
+  if (primaryElement) {
+    primaryElement.style.position = 'relative';
+  }
 
   if (blockerEnabled) {
     hidePrimaryArea();
     addAnalyzingSpinner(primaryElement, 'analyzing-video');
     shouldPauseVideo = true;
   } else {
-    const videoPlayer = document.querySelector('video.html5-main-video');
+    const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
+
     shouldPauseVideo = false;
-    videoPlayer.play();
+    if (videoPlayer) {
+      videoPlayer.play();
+    }
   }
 
   if (metaDataElement && videoEvalEnabled) {
@@ -163,21 +179,29 @@ async function analyzeCurrentVideo(blockerEnabled, videoEvalEnabled) {
 
     if (blockerEnabled && response.evaluation_rating !== 'relevant') {
       removeAnalyzingSpinner('analyzing-video');
-      addWarningForVideo(document.querySelector('#primary'), 'video-warning', response);
+      const primaryElement = document.querySelector('#primary') as HTMLElement;
+      if (primaryElement) {
+        addWarningForVideo(primaryElement, 'video-warning', response);
+      }
     } else {
       if (blockerEnabled) {
         removeAnalyzingSpinner('analyzing-video');
         showPrimaryArea();
-        const videoPlayer = document.querySelector('video.html5-main-video');
+        const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
         shouldPauseVideo = false;
-        videoPlayer.play();
+        if (videoPlayer) {
+          videoPlayer.play();
+        }
       }
-      addTitleEval(response, document.querySelector('ytd-watch-metadata #title'));
+      const titleElement = document.querySelector('ytd-watch-metadata #title') as HTMLElement;
+      if (titleElement) {
+        addTitleEval(response, titleElement);
+      }
     }
   }
 }
 
-async function evaluateAndFilterVideos(videoRenderers, videoTitles) {
+async function evaluateAndFilterVideos(videoRenderers: NodeListOf<HTMLElement>, videoTitles: string[]) {
   console.log('send recommendationLoaded');
   const evaluationResults = await chrome.runtime.sendMessage({ type: 'recommendationsLoaded', videoTitles });
 
@@ -191,24 +215,26 @@ async function evaluateAndFilterVideos(videoRenderers, videoTitles) {
 }
 
 async function analyzedRecommendation() {
-  const secondaryInnerElement = document.querySelector('#secondary-inner');
-  secondaryInnerElement.style.opacity = 0;
+  const secondaryInnerElement = document.querySelector('#secondary-inner') as HTMLElement;
+  if (secondaryInnerElement) {
+    secondaryInnerElement.style.opacity = '0';
+  }
   const observer = new MutationObserver((mutations, obs) => {
-    const videoRecommendations = document.querySelectorAll('ytd-compact-video-renderer');
+    const videoRecommendations = document.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
     if (videoRecommendations.length >= 20) {
-      const videoTitles = [];
-
+      const videoTitles: string[] = [];
       videoRecommendations.forEach(renderer => {
         const titleElement = renderer.querySelector('#video-title');
         if (titleElement) {
-          const videoTitle = titleElement.textContent.trim(); // Get the text and trim whitespace
+          const videoTitle = titleElement.textContent ? titleElement.textContent.trim() : '';
           videoTitles.push(videoTitle);
         }
       });
       obs.disconnect();
       evaluateAndFilterVideos(videoRecommendations, videoTitles);
-
-      secondaryInnerElement.style.opacity = 1;
+      if (secondaryInnerElement) {
+        secondaryInnerElement.style.opacity = '1';
+      }
     }
   });
 
@@ -220,9 +246,11 @@ async function analyzedRecommendation() {
 
 document.addEventListener('yt-page-data-updated', async () => {
   if (!window.location.pathname.includes('/watch')) {
-    const videoPlayer = document.querySelector('video.html5-main-video');
+    const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
     shouldPauseVideo = false;
-    videoPlayer.play();
+    if (videoPlayer) {
+      videoPlayer.play();
+    }
     return; // Exit if not on a watch page
   }
 
