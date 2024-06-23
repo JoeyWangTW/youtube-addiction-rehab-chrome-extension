@@ -122,17 +122,17 @@ const observer = new MutationObserver(mutations => {
 
 observer.observe(document, { childList: true, subtree: true });
 
-function hidePrimaryArea() {
-  const primaryInnerElement = document.querySelector('#primary-inner') as HTMLElement;
-  if (primaryInnerElement) {
-    primaryInnerElement.style.opacity = '0';
+function hideArea(selector: string) {
+  const targetElement = document.querySelector(selector) as HTMLElement;
+  if (targetElement) {
+    targetElement.style.opacity = '0';
   }
 }
 
-function showPrimaryArea() {
-  const primaryInnerElement = document.querySelector('#primary-inner') as HTMLElement;
-  if (primaryInnerElement) {
-    primaryInnerElement.style.opacity = '1';
+function showArea(selector: string) {
+  const targetElement = document.querySelector(selector) as HTMLElement;
+  if (targetElement) {
+    targetElement.style.opacity = '1';
   }
 }
 
@@ -157,7 +157,7 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
   }
 
   if (blockerEnabled) {
-    hidePrimaryArea();
+    hideArea('#primary-inner');
     addAnalyzingSpinner(primaryElement, 'analyzing-video');
     shouldPauseVideo = true;
   } else {
@@ -186,7 +186,7 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
     } else {
       if (blockerEnabled) {
         removeAnalyzingSpinner('analyzing-video');
-        showPrimaryArea();
+        showArea('#primary-inner');
         const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
         shouldPauseVideo = false;
         if (videoPlayer) {
@@ -212,14 +212,15 @@ async function evaluateAndFilterVideos(videoRenderers: NodeListOf<HTMLElement>, 
       renderer.style.display = 'none';
     }
   });
+  return true;
 }
 
-async function analyzedRecommendation() {
+async function analyzeRecommendation() {
   const secondaryInnerElement = document.querySelector('#secondary-inner') as HTMLElement;
   if (secondaryInnerElement) {
     secondaryInnerElement.style.opacity = '0';
   }
-  const observer = new MutationObserver((mutations, obs) => {
+  const observer = new MutationObserver(async (mutations, obs) => {
     const videoRecommendations = document.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
     if (videoRecommendations.length >= 20) {
       const videoTitles: string[] = [];
@@ -231,7 +232,7 @@ async function analyzedRecommendation() {
         }
       });
       obs.disconnect();
-      evaluateAndFilterVideos(videoRecommendations, videoTitles);
+      await evaluateAndFilterVideos(videoRecommendations, videoTitles);
       if (secondaryInnerElement) {
         secondaryInnerElement.style.opacity = '1';
       }
@@ -244,22 +245,61 @@ async function analyzedRecommendation() {
   });
 }
 
+async function analyzeHome() {
+  const primaryElement = document.querySelector('#primary') as HTMLElement;
+
+  if (primaryElement) {
+    primaryElement.style.position = 'relative';
+  }
+  hideArea('#contents');
+  addAnalyzingSpinner(primaryElement, 'analyzing-home-video');
+
+  let videoCount = 0;
+  const observer = new MutationObserver(async (mutations, obs) => {
+    const videoRecommendations = document.querySelectorAll('ytd-rich-item-renderer') as NodeListOf<HTMLElement>;
+    if (videoCount === videoRecommendations.length) {
+      const videoTitles: string[] = [];
+      videoRecommendations.forEach(renderer => {
+        const titleElement = renderer.querySelector('#video-title');
+        if (titleElement) {
+          const videoTitle = titleElement.textContent ? titleElement.textContent.trim() : '';
+          videoTitles.push(videoTitle);
+        }
+      });
+      obs.disconnect();
+      await evaluateAndFilterVideos(videoRecommendations, videoTitles);
+      showArea('#contents');
+      removeAnalyzingSpinner('analyzing-home-video');
+    } else {
+      videoCount = videoRecommendations.length;
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+}
+
 document.addEventListener('yt-page-data-updated', async () => {
-  if (!window.location.pathname.includes('/watch')) {
+  removeElementsByIds(['analyzing-video', 'analyzing-home-video', 'video-warning', 'title-eval']);
+  const { blockerEnabled, videoEvalEnabled, filterEnabled } = await savedSettingsStorage.get();
+  console.log(window.location.href, 'https://www.youtube.com/', filterEnabled);
+  if (window.location.pathname.includes('/watch')) {
+    if (blockerEnabled || videoEvalEnabled) {
+      analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
+    }
+    if (filterEnabled) {
+      analyzeRecommendation();
+    }
+  } else if (window.location.href === 'https://www.youtube.com/' && filterEnabled) {
+    analyzeHome();
+  } else {
     const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
     shouldPauseVideo = false;
     if (videoPlayer) {
       videoPlayer.play();
     }
     return; // Exit if not on a watch page
-  }
-
-  removeElementsByIds(['analyzing-video', 'video-warning', 'title-eval']);
-  const { blockerEnabled, videoEvalEnabled, filterEnabled } = await savedSettingsStorage.get();
-  if (blockerEnabled || videoEvalEnabled) {
-    analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
-  }
-  if (filterEnabled) {
-    analyzedRecommendation();
   }
 });
