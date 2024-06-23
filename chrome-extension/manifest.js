@@ -38,10 +38,17 @@ const manifest = Object.assign({
     {
       matches: ['*://www.youtube.com/*'],
       js: ['content-ui/index.iife.js'],
+      run_at: 'document_start',
     },
     {
       matches: ['*://www.youtube.com/*'],
       css: ['content.css'], // public folder
+    },
+  ],
+  web_accessible_resources: [
+    {
+      resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],
+      matches: ['*://*/*'],
     },
   ],
 });
