@@ -3,20 +3,22 @@ import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-ext
 import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 
 const SettingsTab = () => {
-  const { openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled } = useStorageSuspense(savedSettingsStorage);
+  const { openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled, llmModel } =
+    useStorageSuspense(savedSettingsStorage);
   const [apiKey, setApiKey] = useState<string>(openAIApiKey);
   const [blocker, setBlocker] = useState<boolean>(blockerEnabled);
   const [videoEval, setVideoEval] = useState<boolean>(videoEvalEnabled);
   const [filter, setFilter] = useState<boolean>(filterEnabled);
+  const [model, setModel] = useState<string>(llmModel);
   const [showSavedMessage, setShowSavedMessage] = useState(false);
 
   // Ref to store the initial values for comparison
-  const initialSettings = useRef({ openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled });
+  const initialSettings = useRef({ openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled, llmModel });
 
   useEffect(() => {
     // Update the ref when the component mounts
-    initialSettings.current = { openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled };
-  }, [openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled]);
+    initialSettings.current = { openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled, llmModel };
+  }, [openAIApiKey, blockerEnabled, videoEvalEnabled, filterEnabled, llmModel]);
 
   const saveSettings = async () => {
     await savedSettingsStorage.set({
@@ -24,6 +26,7 @@ const SettingsTab = () => {
       blockerEnabled: blocker,
       videoEvalEnabled: videoEval,
       filterEnabled: filter,
+      llmModel: model,
     });
     // Update initial settings after save
     initialSettings.current = {
@@ -31,6 +34,7 @@ const SettingsTab = () => {
       blockerEnabled: blocker,
       videoEvalEnabled: videoEval,
       filterEnabled: filter,
+      llmModel: model,
     };
     setShowSavedMessage(true);
     setTimeout(() => setShowSavedMessage(false), 3000);
@@ -42,7 +46,8 @@ const SettingsTab = () => {
       apiKey !== initialSettings.current.openAIApiKey ||
       blocker !== initialSettings.current.blockerEnabled ||
       videoEval !== initialSettings.current.videoEvalEnabled ||
-      filter !== initialSettings.current.filterEnabled
+      filter !== initialSettings.current.filterEnabled ||
+      model !== initialSettings.current.llmModel
     );
   };
 
@@ -60,6 +65,22 @@ const SettingsTab = () => {
           value={apiKey}
           onChange={e => setApiKey(e.target.value)}
         />
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="model-select" className="block text-sm font-medium text-gray-700">
+          Choose a model:
+        </label>
+        <select
+          id="model-select"
+          name="model"
+          className="mt-1 p-2 block w-96 border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+          onChange={e => {
+            setModel(e.currentTarget.value);
+          }}>
+          <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+          <option value="gpt-4o">GPT-4o</option>
+        </select>
       </div>
 
       <div className="mb-4">

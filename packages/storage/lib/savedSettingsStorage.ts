@@ -5,6 +5,7 @@ type UserSettings = {
     blockerEnabled: boolean;
     videoEvalEnabled: boolean;
     filterEnabled: boolean;
+    llmModel: string;
 };
 
 type SettingsStorage = BaseStorage<UserSettings>;
@@ -14,6 +15,7 @@ const defaultSettings: UserSettings = {
     blockerEnabled: false,
     videoEvalEnabled: true,
     filterEnabled: false,
+    llmModel: 'gpt-3.5-turbo',
 };
 
 const settingsStorage = createStorage<UserSettings>('user-settings-storage-key', defaultSettings, {
