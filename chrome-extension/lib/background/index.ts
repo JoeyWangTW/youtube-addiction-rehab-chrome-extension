@@ -45,10 +45,9 @@ async function analyzeRecommendations(titles: string) {
     const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a list of video titles they've got.
         The list is split with ","
         Evaluate each video and determine if it should be shown to the user or not, true is should show false is hide it from user.
-        return a json response including two item "result" & "reason",
+        return a json response including one item "result",
         "result" contains a list of boolean values mapping back to the original list,
-        "reason" is a list of one sentence reason why each video is shown or hidden,
-        The lists should be the same length as the original list
+        The list should be the same length as the original list
         `;
     const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate the following video titles: "${titles}".`;
     console.log(prompt);
