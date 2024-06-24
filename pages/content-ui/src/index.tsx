@@ -215,7 +215,7 @@ async function evaluateAndFilterVideos(videoRenderers: NodeListOf<HTMLElement>, 
 }
 
 async function analyzeRecommendation() {
-  const secondaryElement = document.querySelector('ytd-watch-flexy #secondary');
+  const secondaryElement = document.querySelector('ytd-watch-flexy #secondary') as HTMLElement;
   hideArea('#secondary-inner');
   addAnalyzingSpinner(secondaryElement, 'analyzing-related-videos');
   const observer = new MutationObserver(async (mutations, obs) => {
