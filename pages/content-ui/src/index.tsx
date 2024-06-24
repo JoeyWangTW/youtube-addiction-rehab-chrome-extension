@@ -153,6 +153,9 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
   const metaDataElement = document.querySelector('ytd-watch-metadata');
   const primaryElement = document.querySelector('ytd-watch-flexy #primary') as HTMLElement;
 
+  if (primaryElement) {
+    primaryElement.style.position = 'relative';
+  }
   if (blockerEnabled) {
     hideArea('#primary-inner');
     addAnalyzingSpinner(primaryElement, 'analyzing-video');
@@ -176,7 +179,6 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
 
     if (blockerEnabled && response.evaluation_rating !== 'relevant') {
       removeAnalyzingSpinner('analyzing-video');
-      primaryElement.style.position = 'relative';
       if (primaryElement) {
         addWarningForVideo(primaryElement, 'video-warning', response);
       }
@@ -213,10 +215,9 @@ async function evaluateAndFilterVideos(videoRenderers: NodeListOf<HTMLElement>, 
 }
 
 async function analyzeRecommendation() {
-  const secondaryInnerElement = document.querySelector('#secondary-inner') as HTMLElement;
-  if (secondaryInnerElement) {
-    secondaryInnerElement.style.opacity = '0';
-  }
+  const secondaryElement = document.querySelector('ytd-watch-flexy #secondary');
+  hideArea('#secondary-inner');
+  addAnalyzingSpinner(secondaryElement, 'analyzing-related-videos');
   const observer = new MutationObserver(async (mutations, obs) => {
     const videoRecommendations = document.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
     if (videoRecommendations.length >= 20) {
@@ -230,9 +231,8 @@ async function analyzeRecommendation() {
       });
       obs.disconnect();
       await evaluateAndFilterVideos(videoRecommendations, videoTitles);
-      if (secondaryInnerElement) {
-        secondaryInnerElement.style.opacity = '1';
-      }
+      showArea('#secondary-inner');
+      removeAnalyzingSpinner('analyzing-related-videos');
     }
   });
 
@@ -281,7 +281,13 @@ async function analyzeHome(filterEnabled: boolean) {
 }
 
 document.addEventListener('yt-page-data-updated', async () => {
-  removeElementsByIds(['analyzing-video', 'analyzing-home-video', 'video-warning', 'title-eval']);
+  removeElementsByIds([
+    'analyzing-video',
+    'analyzing-home-video',
+    'analyzing-related-videos',
+    'video-warning',
+    'title-eval',
+  ]);
   const { blockerEnabled, videoEvalEnabled, filterEnabled } = await savedSettingsStorage.get();
 
   if (window.location.pathname.includes('/watch')) {
