@@ -1,9 +1,9 @@
 import '@src/Popup.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
+import { savedGoalsStorage,savedSettingsStorage  } from '@chrome-extension-boilerplate/storage';
 
-const GoalsEditor = () => {
+const GoalsEditor = ({ disabled }) => {
   const { helpful, harmful } = useStorageSuspense(savedGoalsStorage);
   const [helpfulVideos, setHelpfulVideos] = useState(helpful);
   const [harmfulVideos, setHarmfulVideos] = useState(harmful);
@@ -35,11 +35,11 @@ const GoalsEditor = () => {
         </label>
         <textarea
           id="helpful-videos"
-          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-700 bg-gray-800 text-white shadow-sm resize-none
-              focus:border-gray-500 focus:outline-none"
+          className={`mt-1 p-2 block w-full border-2 rounded-md border-gray-700 bg-gray-800 shadow-sm resize-none focus:border-gray-500 focus:outline-none ${disabled ? 'text-gray-500' : 'text-white'}`}
           value={helpfulVideos}
           onChange={e => setHelpfulVideos(e.target.value)}
           rows={5}
+          disabled={disabled}
         />
       </div>
       <div className="mb-4">
@@ -48,17 +48,18 @@ const GoalsEditor = () => {
         </label>
         <textarea
           id="harmful-videos"
-          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-700 bg-gray-800 text-white shadow-sm resize-none
-              focus:border-gray-500 focus:outline-none"
+          className={`mt-1 p-2 block w-full border-2 rounded-md border-gray-700 bg-gray-800 shadow-sm resize-none focus:border-gray-500 focus:outline-none ${disabled ? 'text-gray-500' : 'text-white'}`}
           value={harmfulVideos}
           onChange={e => setHarmfulVideos(e.target.value)}
           rows={5}
+          disabled={disabled}
         />
       </div>
       {hasChanges() && (
         <button
           className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          onClick={saveGoals}>
+          onClick={saveGoals}
+          disabled={disabled}>
           Save Changes
         </button>
       )}
@@ -72,15 +73,24 @@ const Popup = () => {
     chrome.runtime.openOptionsPage(); // This opens the options page.
   };
 
+
+  const { openAIApiKey} = useStorageSuspense(savedSettingsStorage);
+
   return (
     <div>
-      <GoalsEditor />
-      <div className="bg-gray-900 border-t border-gray-500">
+      <GoalsEditor disabled={!openAIApiKey} />
+      <div className="flex flex-row items-center bg-gray-900 border-t border-gray-500">
         <button
           onClick={openOptionsPage}
           className="block text-gray-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
           Settings 
         </button>
+        {!openAIApiKey && (
+           <div >⬅️</div> 
+        )}
+        {!openAIApiKey && (
+            <span className="text-red-500 text-sm ml-2 my-2">Please set up your API key in the settings.</span>
+        )}
       </div>
     </div>
   );
