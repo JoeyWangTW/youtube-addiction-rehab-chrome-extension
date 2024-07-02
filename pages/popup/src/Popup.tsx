@@ -28,28 +28,28 @@ const GoalsEditor = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 bg-gray-900 text-white">
       <div className="mb-4">
-        <label htmlFor="helpful-videos" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="helpful-videos" className="block text-sm font-medium text-gray-300">
           Watch Helpful Videos:
         </label>
         <textarea
           id="helpful-videos"
-          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-300 shadow-sm resize-none
-              focus:border-gray-700 focus:outline-none"
+          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-700 bg-gray-800 text-white shadow-sm resize-none
+              focus:border-gray-500 focus:outline-none"
           value={helpfulVideos}
           onChange={e => setHelpfulVideos(e.target.value)}
           rows={5}
         />
       </div>
       <div className="mb-4">
-        <label htmlFor="harmful-videos" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="harmful-videos" className="block text-sm font-medium text-gray-300">
           Avoid Harmful Videos:
         </label>
         <textarea
           id="harmful-videos"
-          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-300 shadow-sm resize-none
-              focus:border-gray-700 focus:outline-none"
+          className="mt-1 p-2 block w-full border-2 rounded-md border-gray-700 bg-gray-800 text-white shadow-sm resize-none
+              focus:border-gray-500 focus:outline-none"
           value={harmfulVideos}
           onChange={e => setHarmfulVideos(e.target.value)}
           rows={5}
@@ -75,11 +75,11 @@ const Popup = () => {
   return (
     <div>
       <GoalsEditor />
-      <div className="border-t-1 border border-gray-200">
+      <div className="bg-gray-900 border-t border-gray-500">
         <button
           onClick={openOptionsPage}
-          className="block text-gray-700 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-          Open Options
+          className="block text-gray-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+          Settings 
         </button>
       </div>
     </div>

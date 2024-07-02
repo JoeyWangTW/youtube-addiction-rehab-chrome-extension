@@ -55,7 +55,7 @@ const SettingsTab = () => {
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
       <div className="mb-4">
-        <label htmlFor="api-key" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="api-key" className="block text-sm font-medium text-white">
           API Key
         </label>
         <input
@@ -68,7 +68,7 @@ const SettingsTab = () => {
       </div>
 
       <div className="mb-4">
-        <label htmlFor="model-select" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="model-select" className="block text-sm font-medium text-white">
           Choose a model:
         </label>
         <select

@@ -30,7 +30,7 @@ const GoalsTab = () => {
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-8">Goals</h1>
       <div className="mb-4">
-        <label htmlFor="helpful-videos" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="helpful-videos" className="block text-sm font-medium text-white">
           Watch Helpful Videos:
         </label>
         <textarea
@@ -43,7 +43,7 @@ const GoalsTab = () => {
         />
       </div>
       <div className="mb-4">
-        <label htmlFor="harmful-videos" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="harmful-videos" className="block text-sm font-medium text-white">
           Avoid Harmful Videos:
         </label>
         <textarea
