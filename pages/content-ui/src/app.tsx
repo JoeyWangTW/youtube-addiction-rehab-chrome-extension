@@ -39,8 +39,8 @@ export const Analyzing: React.FC = () => {
   return (
     <div className="w-full h-[500px] flex justify-center items-center">
       <div className="text-center text-white">
-        <div className="animate-spin text-7xl">💾</div>
-        <div className="mt-16 text-7xl">AI Analyzing...</div>
+        <div className="animate-bounce text-7xl">🤖</div>
+        <div className="mt-8 text-7xl">Analyzing Content...</div>
       </div>
     </div>
   );
