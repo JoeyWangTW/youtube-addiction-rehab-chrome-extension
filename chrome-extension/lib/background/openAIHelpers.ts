@@ -1,5 +1,6 @@
 // OpenAIHelpers.ts
 import axios from 'axios';
+import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 
 interface ChatCompletionResponse {
     choices: { message: { content: string } }[];
@@ -15,9 +16,10 @@ export function formatPrompt(systemPrompt: string, prompt: string) {
 // Update the function to match the expected API usage for chat completions
 export async function fetchChatCompletion(apiKey: string, messages: any[]): Promise<string> {
     try {
+        const { llmModel } = await savedSettingsStorage.get();
         const url = 'https://api.openai.com/v1/chat/completions';
         const data = {
-            model: 'gpt-4o', // Specify the model you are using; adjust as necessary
+            model: llmModel, // Specify the model you are using; adjust as necessary
             response_format: { type: 'json_object' },
             messages: messages, // This should be structured according to OpenAI's requirements
         };
