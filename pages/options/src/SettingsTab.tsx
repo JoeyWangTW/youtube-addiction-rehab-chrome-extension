@@ -76,6 +76,7 @@ const SettingsTab = () => {
         <select
           id="model-select"
           name="model"
+          value={model}
           className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
           onChange={e => {
             setModel(e.currentTarget.value);
