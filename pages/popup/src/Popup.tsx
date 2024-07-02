@@ -31,7 +31,7 @@ const GoalsEditor = () => {
     <div className="p-4 bg-gray-900 text-white">
       <div className="mb-4">
         <label htmlFor="helpful-videos" className="block text-sm font-medium text-gray-300">
-          Watch Helpful Videos:
+          Helpful Videos to Watch:
         </label>
         <textarea
           id="helpful-videos"
@@ -44,7 +44,7 @@ const GoalsEditor = () => {
       </div>
       <div className="mb-4">
         <label htmlFor="harmful-videos" className="block text-sm font-medium text-gray-300">
-          Avoid Harmful Videos:
+          Harmful Videos to Avoid:
         </label>
         <textarea
           id="harmful-videos"
@@ -59,10 +59,10 @@ const GoalsEditor = () => {
         <button
           className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           onClick={saveGoals}>
-          Save Goals
+          Save Changes
         </button>
       )}
-      {showSavedMessage && <div className="mt-4 py-2 px-4 text-sm text-green-500">Saved!</div>}
+      {showSavedMessage && <div className="mt-4 py-2 px-4 text-sm text-green-500">Changes Saved!</div>}
     </div>
   );
 };
