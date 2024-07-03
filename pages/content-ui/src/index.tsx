@@ -208,7 +208,10 @@ async function evaluateAndFilterVideos(videoRenderers: HTMLElement[], videoTitle
   videoRenderers.forEach((renderer, index) => {
     if (!evaluationResults.result[index]) {
       renderer.style.pointerEvents = 'none';
-      renderer.style.opacity = '0';
+      renderer.style.display = 'none';
+    } else {
+      renderer.style.pointerEvents = 'auto';
+      renderer.style.opacity = '1';
     }
   });
   return true;
@@ -224,8 +227,10 @@ async function analyzeRecommendation() {
   const observer = new MutationObserver(async (mutations, obs) => {
     let videoRecommendations = secondaryElement.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
 
-    // youtube loads 19 or 20 videos at a time
-    if ((videoRecommendations.length % 20 === 0 || videoRecommendations.length % 19 === 0)
+    // youtube loads 19, 20, or 21 videos at a time
+    if (((videoRecommendations.length - lastAnalyzedCount) % 20 === 0 ||
+      (videoRecommendations.length - lastAnalyzedCount) % 19 === 0 ||
+      (videoRecommendations.length - lastAnalyzedCount) % 21 === 0)
       && videoRecommendations.length > lastAnalyzedCount) {
       obs.disconnect();
 
@@ -234,6 +239,12 @@ async function analyzeRecommendation() {
         const titleElement = renderer.querySelector('#video-title');
         return titleElement ? titleElement.textContent?.trim() || '' : '';
       });
+      if (lastAnalyzedCount > 0) {
+        newVideos.forEach((renderer, index) => {
+          renderer.style.pointerEvents = 'none';
+          renderer.style.opacity = '0';
+        });
+      }
       await evaluateAndFilterVideos(newVideos, videoTitles);
       showArea('#secondary-inner');
       removeAnalyzingSpinner('analyzing-related-videos');
@@ -278,6 +289,14 @@ async function analyzeHome(filterEnabled: boolean) {
           const titleElement = renderer.querySelector('#video-title');
           return titleElement ? titleElement.textContent?.trim() || '' : '';
         });
+
+
+        if (lastAnalyzedCount > 0) {
+          newVideos.forEach((renderer, index) => {
+            renderer.style.pointerEvents = 'none';
+            renderer.style.opacity = '0';
+          });
+        }
         await evaluateAndFilterVideos(newVideos, videoTitles);
         showArea('ytd-rich-grid-renderer');
         removeAnalyzingSpinner('analyzing-home-video');
