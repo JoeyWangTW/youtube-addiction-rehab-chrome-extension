@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
 import { savedGoalsStorage,savedSettingsStorage  } from '@chrome-extension-boilerplate/storage';
 
-const GoalsEditor = ({ disabled }) => {
+const GoalsEditor = ({ disabled }: { disabled: boolean }) => {
   const { helpful, harmful } = useStorageSuspense(savedGoalsStorage);
   const [helpfulVideos, setHelpfulVideos] = useState(helpful);
   const [harmfulVideos, setHarmfulVideos] = useState(harmful);
