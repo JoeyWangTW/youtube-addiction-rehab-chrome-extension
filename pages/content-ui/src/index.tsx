@@ -200,15 +200,15 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
   }
 }
 
-async function evaluateAndFilterVideos(videoRenderers: NodeListOf<HTMLElement>, videoTitles: string[]) {
+async function evaluateAndFilterVideos(videoRenderers: HTMLElement[], videoTitles: string[]) {
   console.log('send recommendationLoaded');
   const evaluationResults = await chrome.runtime.sendMessage({ type: 'recommendationsLoaded', videoTitles });
 
   console.log(evaluationResults);
   videoRenderers.forEach((renderer, index) => {
     if (!evaluationResults.result[index]) {
-      // Assuming true means show the video
-      renderer.style.display = 'none';
+      renderer.style.pointerEvents = 'none';
+      renderer.style.opacity = '0';
     }
   });
   return true;
@@ -218,28 +218,43 @@ async function analyzeRecommendation() {
   const secondaryElement = document.querySelector('ytd-watch-flexy #secondary') as HTMLElement;
   hideArea('#secondary-inner');
   addAnalyzingSpinner(secondaryElement, 'analyzing-related-videos');
+
+  let lastAnalyzedCount = 0;
+
   const observer = new MutationObserver(async (mutations, obs) => {
-    const videoRecommendations = document.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
-    if (videoRecommendations.length >= 20) {
-      const videoTitles: string[] = [];
-      videoRecommendations.forEach(renderer => {
-        const titleElement = renderer.querySelector('#video-title');
-        if (titleElement) {
-          const videoTitle = titleElement.textContent ? titleElement.textContent.trim() : '';
-          videoTitles.push(videoTitle);
-        }
-      });
+    let videoRecommendations = secondaryElement.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
+
+    // youtube loads 19 or 20 videos at a time
+    if ((videoRecommendations.length % 20 === 0 || videoRecommendations.length % 19 === 0)
+      && videoRecommendations.length > lastAnalyzedCount) {
       obs.disconnect();
-      await evaluateAndFilterVideos(videoRecommendations, videoTitles);
+
+      const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
+      const videoTitles: string[] = newVideos.map(renderer => {
+        const titleElement = renderer.querySelector('#video-title');
+        return titleElement ? titleElement.textContent?.trim() || '' : '';
+      });
+      await evaluateAndFilterVideos(newVideos, videoTitles);
       showArea('#secondary-inner');
       removeAnalyzingSpinner('analyzing-related-videos');
+
+      lastAnalyzedCount = videoRecommendations.length;
+
+      if (secondaryElement) {
+        observer.observe(secondaryElement, {
+          childList: true,
+          subtree: true,
+        });
+      }
     }
   });
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
+  if (secondaryElement) {
+    observer.observe(secondaryElement, {
+      childList: true,
+      subtree: true,
+    });
+  }
 }
 
 async function analyzeHome(filterEnabled: boolean) {
@@ -247,29 +262,41 @@ async function analyzeHome(filterEnabled: boolean) {
     const primaryElement = document.querySelector('ytd-browse #primary') as HTMLElement;
 
     let videoCount = 0;
+    let lastAnalyzedCount = 0;
 
     hideArea('ytd-rich-grid-renderer');
     addAnalyzingSpinner(primaryElement, 'analyzing-home-video');
 
     const observer = new MutationObserver(async (mutations, obs) => {
       const videoRecommendations = document.querySelectorAll('ytd-rich-item-renderer') as NodeListOf<HTMLElement>;
+
       if (videoCount === videoRecommendations.length) {
-        const videoTitles: string[] = [];
-        videoRecommendations.forEach(renderer => {
-          const titleElement = renderer.querySelector('#video-title');
-          if (titleElement) {
-            const videoTitle = titleElement.textContent ? titleElement.textContent.trim() : '';
-            videoTitles.push(videoTitle);
-          }
-        });
         obs.disconnect();
-        await evaluateAndFilterVideos(videoRecommendations, videoTitles);
+
+        const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
+        const videoTitles: string[] = newVideos.map(renderer => {
+          const titleElement = renderer.querySelector('#video-title');
+          return titleElement ? titleElement.textContent?.trim() || '' : '';
+        });
+        await evaluateAndFilterVideos(newVideos, videoTitles);
         showArea('ytd-rich-grid-renderer');
         removeAnalyzingSpinner('analyzing-home-video');
+
+        lastAnalyzedCount = videoRecommendations.length;
+
+        if (primaryElement) {
+          observer.observe(primaryElement, {
+            childList: true,
+            subtree: true,
+          });
+        }
+
       } else {
         videoCount = videoRecommendations.length;
       }
+
     });
+
 
     if (primaryElement) {
       observer.observe(primaryElement, {
