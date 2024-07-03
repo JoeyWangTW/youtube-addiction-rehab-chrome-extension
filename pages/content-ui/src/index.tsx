@@ -239,15 +239,34 @@ async function analyzeRecommendation() {
         const titleElement = renderer.querySelector('#video-title');
         return titleElement ? titleElement.textContent?.trim() || '' : '';
       });
-      if (lastAnalyzedCount > 0) {
+
+
+      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
         newVideos.forEach((renderer, index) => {
           renderer.style.pointerEvents = 'none';
           renderer.style.opacity = '0';
         });
+        if (newVideos[0]) {
+          const spinnerElement = document.createElement('div');
+          spinnerElement.style.position = 'relative';
+          newVideos[0].parentNode?.insertBefore(spinnerElement, newVideos[0]);
+          addAnalyzingSpinner(spinnerElement, 'analyzing-new-related-video');
+        }
       }
-      await evaluateAndFilterVideos(newVideos, videoTitles);
-      showArea('#secondary-inner');
-      removeAnalyzingSpinner('analyzing-related-videos');
+
+      if (newVideos.length > 0) {
+        await evaluateAndFilterVideos(newVideos, videoTitles);
+      }
+
+      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+        removeAnalyzingSpinner('analyzing-new-related-video');
+      } else {
+
+        showArea('#secondary-inner');
+        removeAnalyzingSpinner('analyzing-related-videos');
+      }
+
+
 
       lastAnalyzedCount = videoRecommendations.length;
 
@@ -291,15 +310,27 @@ async function analyzeHome(filterEnabled: boolean) {
         });
 
 
-        if (lastAnalyzedCount > 0) {
+        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
           newVideos.forEach((renderer, index) => {
             renderer.style.pointerEvents = 'none';
             renderer.style.opacity = '0';
           });
+          if (newVideos[0].parentElement?.parentElement) {
+            newVideos[0].parentElement.parentElement.style.position = 'relative';
+            addAnalyzingSpinner(newVideos[0].parentElement.parentElement, 'analyzing-new-home-video');
+          }
         }
-        await evaluateAndFilterVideos(newVideos, videoTitles);
-        showArea('ytd-rich-grid-renderer');
-        removeAnalyzingSpinner('analyzing-home-video');
+
+        if (newVideos.length > 0) {
+          await evaluateAndFilterVideos(newVideos, videoTitles);
+        }
+
+        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+          removeAnalyzingSpinner('analyzing-new-home-video');
+        } else {
+          showArea('ytd-rich-grid-renderer');
+          removeAnalyzingSpinner('analyzing-home-video');
+        }
 
         lastAnalyzedCount = videoRecommendations.length;
 
