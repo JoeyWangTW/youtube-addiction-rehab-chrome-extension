@@ -28,28 +28,28 @@ const GoalsTab = () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-3xl font-bold mb-8">Goals</h1>
+      <h1 className="text-3xl font-bold mb-8">Your Goals</h1>
       <div className="mb-4">
-        <label htmlFor="helpful-videos" className="block text-sm font-medium text-gray-700">
-          Watch Helpful Videos:
+        <label htmlFor="helpful-videos" className="block text-sm font-medium text-white">
+          Videos to Watch:
         </label>
         <textarea
           id="helpful-videos"
           className="mt-1 p-2 block w-96 border-2 rounded-md border-gray-300 shadow-sm resize-none
-              focus:border-gray-700 focus:outline-none"
+              focus:border-gray-700 focus:outline-none text-black"
           value={helpfulVideos}
           onChange={e => setHelpfulVideos(e.target.value)}
           rows={5}
         />
       </div>
       <div className="mb-4">
-        <label htmlFor="harmful-videos" className="block text-sm font-medium text-gray-700">
-          Avoid Harmful Videos:
+        <label htmlFor="harmful-videos" className="block text-sm font-medium text-white">
+          Videos to Avoid:
         </label>
         <textarea
           id="harmful-videos"
           className="mt-1 p-2 block w-96 border-2 rounded-md border-gray-300 shadow-sm resize-none
-              focus:border-gray-700 focus:outline-none"
+              focus:border-gray-700 focus:outline-none text-black"
           value={harmfulVideos}
           onChange={e => setHarmfulVideos(e.target.value)}
           rows={5}
@@ -59,10 +59,10 @@ const GoalsTab = () => {
         <button
           className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           onClick={saveGoals}>
-          Save Goals
+          Save Changes
         </button>
       )}
-      {showSavedMessage && <div className="mt-4 py-2 px-4 text-sm text-green-500">Saved!</div>}
+      {showSavedMessage && <div className="mt-4 py-2 px-4 text-sm text-green-500">Changes Saved!</div>}
     </div>
   );
 };

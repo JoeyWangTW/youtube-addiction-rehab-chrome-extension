@@ -22,31 +22,31 @@ const Options = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      <div className="text-xl font-bold p-4 shadow">YouTube Addiction Rehab</div>
+    <div className="flex flex-col h-screen bg-gray-900">
+      <div className="text-xl font-bold p-4 shadow text-white">YouTube Addiction Rehab</div>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-64 bg-white shadow-md">
+        <div className="w-64 bg-gray-800 shadow-md">
           <div className="flex flex-col">
             <button
-              className={`p-4 text-left ${activeTab === 'info' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'} transition duration-150 ease-in-out`}
+              className={`p-4 text-left ${activeTab === 'info' ? 'bg-blue-500 text-white' : 'hover:bg-gray-700 text-white'} transition duration-150 ease-in-out`}
               onClick={() => setActiveTab('info')}>
               Info
             </button>
             <button
-              className={`p-4 text-left ${activeTab === 'goals' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'} transition duration-150 ease-in-out`}
+              className={`p-4 text-left ${activeTab === 'goals' ? 'bg-blue-500 text-white' : 'hover:bg-gray-700 text-white'} transition duration-150 ease-in-out`}
               onClick={() => setActiveTab('goals')}>
               Goals
             </button>
             <button
-              className={`p-4 text-left ${activeTab === 'settings' ? 'bg-blue-500 text-white' : 'hover:bg-blue-100'} transition duration-150 ease-in-out`}
+              className={`p-4 text-left ${activeTab === 'settings' ? 'bg-blue-500 text-white' : 'hover:bg-gray-700 text-white'} transition duration-150 ease-in-out`}
               onClick={() => setActiveTab('settings')}>
               Settings
             </button>
           </div>
         </div>
 
-        <div className="flex-1 bg-white p-4 overflow-auto">{renderTab()}</div>
+        <div className="flex-1 bg-gray-800 p-4 overflow-auto text-white">{renderTab()}</div>
       </div>
     </div>
   );

@@ -54,27 +54,30 @@ const SettingsTab = () => {
   return (
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
+
+      <h2 className="text-2xl font-bold mb-4">AI Settings</h2>
       <div className="mb-4">
-        <label htmlFor="api-key" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="api-key" className="block text-sm font-medium text-white">
           API Key
         </label>
         <input
           id="api-key"
           type="password"
-          className="mt-1 p-2 block w-96 border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+          className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
           value={apiKey}
           onChange={e => setApiKey(e.target.value)}
         />
       </div>
 
       <div className="mb-4">
-        <label htmlFor="model-select" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="model-select" className="block text-sm font-medium text-white">
           Choose a model:
         </label>
         <select
           id="model-select"
           name="model"
-          className="mt-1 p-2 block w-96 border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+          value={model}
+          className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
           onChange={e => {
             setModel(e.currentTarget.value);
           }}>
@@ -82,6 +85,8 @@ const SettingsTab = () => {
           <option value="gpt-4o">GPT-4o</option>
         </select>
       </div>
+
+      <h2 className="text-2xl font-bold mb-4">Smart Features</h2>
 
       <div className="mb-4">
         <label htmlFor="ai-filter" className="flex items-center space-x-2">
@@ -125,7 +130,7 @@ const SettingsTab = () => {
             checked={videoEval}
             onChange={() => setVideoEval(!videoEval)}
           />
-          <span>Enable Video VideoEvaluation</span>
+          <span>Enable Video Evaluation</span>
         </label>
       </div>
       {hasChanges() && (
