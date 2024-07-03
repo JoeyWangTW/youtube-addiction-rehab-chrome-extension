@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
+import { savedSettingsStorage} from '@chrome-extension-boilerplate/storage';
+
+// TODO: import type from stroage file
+type UserSettings = {
+    openAIApiKey: string;
+    anthropicApiKey: string;
+    blockerEnabled: boolean;
+    videoEvalEnabled: boolean;
+    filterEnabled: boolean;
+    llmModel: string;
+    aiProvider: 'openai' | 'anthropic';
+};
 
 const SettingsTab = () => {
   const initialSettings = useStorageSuspense(savedSettingsStorage);
@@ -19,7 +30,7 @@ const SettingsTab = () => {
   };
 
   const hasChanges = () => {
-    return Object.keys(settings).some(key => settings[key] !== initialSettings[key]);
+    return Object.keys(settings).some(key => settings[key as keyof UserSettings] !== initialSettings[key as keyof UserSettings]);
   };
 
   const handleChange = (key: string, value: any) => {
