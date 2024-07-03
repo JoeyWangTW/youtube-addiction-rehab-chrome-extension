@@ -1,4 +1,3 @@
-// OpenAIHelpers.ts
 import axios from 'axios';
 import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 

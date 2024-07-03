@@ -1,7 +1,7 @@
 import 'webextension-polyfill';
 import { savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
 import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
-import { fetchChatCompletion } from './openAIHelpers';
+import { fetchChatCompletion } from './AIHelpers';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     (async () => {
