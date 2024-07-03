@@ -200,15 +200,18 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
   }
 }
 
-async function evaluateAndFilterVideos(videoRenderers: NodeListOf<HTMLElement>, videoTitles: string[]) {
+async function evaluateAndFilterVideos(videoRenderers: HTMLElement[], videoTitles: string[]) {
   console.log('send recommendationLoaded');
   const evaluationResults = await chrome.runtime.sendMessage({ type: 'recommendationsLoaded', videoTitles });
 
   console.log(evaluationResults);
   videoRenderers.forEach((renderer, index) => {
     if (!evaluationResults.result[index]) {
-      // Assuming true means show the video
+      renderer.style.pointerEvents = 'none';
       renderer.style.display = 'none';
+    } else {
+      renderer.style.pointerEvents = 'auto';
+      renderer.style.opacity = '1';
     }
   });
   return true;
@@ -218,28 +221,70 @@ async function analyzeRecommendation() {
   const secondaryElement = document.querySelector('ytd-watch-flexy #secondary') as HTMLElement;
   hideArea('#secondary-inner');
   addAnalyzingSpinner(secondaryElement, 'analyzing-related-videos');
+
+  let lastAnalyzedCount = 0;
+
   const observer = new MutationObserver(async (mutations, obs) => {
-    const videoRecommendations = document.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
-    if (videoRecommendations.length >= 20) {
-      const videoTitles: string[] = [];
-      videoRecommendations.forEach(renderer => {
-        const titleElement = renderer.querySelector('#video-title');
-        if (titleElement) {
-          const videoTitle = titleElement.textContent ? titleElement.textContent.trim() : '';
-          videoTitles.push(videoTitle);
-        }
-      });
+    let videoRecommendations = secondaryElement.querySelectorAll('ytd-compact-video-renderer') as NodeListOf<HTMLElement>;
+
+    // youtube loads 19, 20, or 21 videos at a time
+    if (((videoRecommendations.length - lastAnalyzedCount) % 20 === 0 ||
+      (videoRecommendations.length - lastAnalyzedCount) % 19 === 0 ||
+      (videoRecommendations.length - lastAnalyzedCount) % 21 === 0)
+      && videoRecommendations.length > lastAnalyzedCount) {
       obs.disconnect();
-      await evaluateAndFilterVideos(videoRecommendations, videoTitles);
-      showArea('#secondary-inner');
-      removeAnalyzingSpinner('analyzing-related-videos');
+
+      const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
+      const videoTitles: string[] = newVideos.map(renderer => {
+        const titleElement = renderer.querySelector('#video-title');
+        return titleElement ? titleElement.textContent?.trim() || '' : '';
+      });
+
+
+      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+        newVideos.forEach((renderer, index) => {
+          renderer.style.pointerEvents = 'none';
+          renderer.style.opacity = '0';
+        });
+        if (newVideos[0]) {
+          const spinnerElement = document.createElement('div');
+          spinnerElement.style.position = 'relative';
+          newVideos[0].parentNode?.insertBefore(spinnerElement, newVideos[0]);
+          addAnalyzingSpinner(spinnerElement, 'analyzing-new-related-video');
+        }
+      }
+
+      if (newVideos.length > 0) {
+        await evaluateAndFilterVideos(newVideos, videoTitles);
+      }
+
+      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+        removeAnalyzingSpinner('analyzing-new-related-video');
+      } else {
+
+        showArea('#secondary-inner');
+        removeAnalyzingSpinner('analyzing-related-videos');
+      }
+
+
+
+      lastAnalyzedCount = videoRecommendations.length;
+
+      if (secondaryElement) {
+        observer.observe(secondaryElement, {
+          childList: true,
+          subtree: true,
+        });
+      }
     }
   });
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
+  if (secondaryElement) {
+    observer.observe(secondaryElement, {
+      childList: true,
+      subtree: true,
+    });
+  }
 }
 
 async function analyzeHome(filterEnabled: boolean) {
@@ -247,29 +292,61 @@ async function analyzeHome(filterEnabled: boolean) {
     const primaryElement = document.querySelector('ytd-browse #primary') as HTMLElement;
 
     let videoCount = 0;
+    let lastAnalyzedCount = 0;
 
     hideArea('ytd-rich-grid-renderer');
     addAnalyzingSpinner(primaryElement, 'analyzing-home-video');
 
     const observer = new MutationObserver(async (mutations, obs) => {
       const videoRecommendations = document.querySelectorAll('ytd-rich-item-renderer') as NodeListOf<HTMLElement>;
+
       if (videoCount === videoRecommendations.length) {
-        const videoTitles: string[] = [];
-        videoRecommendations.forEach(renderer => {
-          const titleElement = renderer.querySelector('#video-title');
-          if (titleElement) {
-            const videoTitle = titleElement.textContent ? titleElement.textContent.trim() : '';
-            videoTitles.push(videoTitle);
-          }
-        });
         obs.disconnect();
-        await evaluateAndFilterVideos(videoRecommendations, videoTitles);
-        showArea('ytd-rich-grid-renderer');
-        removeAnalyzingSpinner('analyzing-home-video');
+
+        const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
+        const videoTitles: string[] = newVideos.map(renderer => {
+          const titleElement = renderer.querySelector('#video-title');
+          return titleElement ? titleElement.textContent?.trim() || '' : '';
+        });
+
+
+        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+          newVideos.forEach((renderer, index) => {
+            renderer.style.pointerEvents = 'none';
+            renderer.style.opacity = '0';
+          });
+          if (newVideos[0].parentElement?.parentElement) {
+            newVideos[0].parentElement.parentElement.style.position = 'relative';
+            addAnalyzingSpinner(newVideos[0].parentElement.parentElement, 'analyzing-new-home-video');
+          }
+        }
+
+        if (newVideos.length > 0) {
+          await evaluateAndFilterVideos(newVideos, videoTitles);
+        }
+
+        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+          removeAnalyzingSpinner('analyzing-new-home-video');
+        } else {
+          showArea('ytd-rich-grid-renderer');
+          removeAnalyzingSpinner('analyzing-home-video');
+        }
+
+        lastAnalyzedCount = videoRecommendations.length;
+
+        if (primaryElement) {
+          observer.observe(primaryElement, {
+            childList: true,
+            subtree: true,
+          });
+        }
+
       } else {
         videoCount = videoRecommendations.length;
       }
+
     });
+
 
     if (primaryElement) {
       observer.observe(primaryElement, {
