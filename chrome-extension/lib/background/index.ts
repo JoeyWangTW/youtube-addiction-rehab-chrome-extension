@@ -1,7 +1,7 @@
 import 'webextension-polyfill';
 import { savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
 import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
-import { fetchChatCompletion, formatPrompt } from './openAIHelpers';
+import { fetchChatCompletion } from './openAIHelpers';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     (async () => {
@@ -45,13 +45,13 @@ async function analyzeRecommendations(titles: string) {
     const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a list of video titles they've got.
         The list is split with ","
         Evaluate each video and determine if it should be shown to the user or not, true is should show false is hide it from user.
-        return a json response including one item "result",
+        return a JSON response including one item "result", response has to be pure JSON, no other words or characters.
         "result" contains a list of boolean values mapping back to the original list,
         The list should be the same length as the original list
         `;
     const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate the following video titles: "${titles}".`;
     console.log(prompt);
-    const result = await fetchChatCompletion(openAIApiKey, formatPrompt(systemPrompt, prompt));
+    const result = await fetchChatCompletion(systemPrompt, prompt);
     const analysisResult = JSON.parse(result);
     return analysisResult;
 }
@@ -78,7 +78,7 @@ async function analyzeVideoTitle(title: string) {
         If the user is "avoid", try to use a teasing but asserting tone to let them know they are watching something they should avoid.
         Assume user understand the language of the video. Also also return the evaluation_context in English`;
     const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate if the following video title is relevant, should be avoided, or not sure: "${title}".`;
-    const result = await fetchChatCompletion(openAIApiKey, formatPrompt(systemPrompt, prompt));
+    const result = await fetchChatCompletion(systemPrompt, prompt);
     const analysisResult = JSON.parse(result);
     return analysisResult;
 }
