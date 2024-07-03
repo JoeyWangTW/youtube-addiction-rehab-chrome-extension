@@ -23,9 +23,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             const videoTitles = message.videoTitles;
             if (videoTitles) {
                 console.log('Received recommended video titles in background:', videoTitles);
-                // You can perform further actions here, such as:
-                const filterResult = await analyzeRecommendations(videoTitles);
-                // Send decision back to content script
+                const joinedTitles = videoTitles.join('///');
+                const filterResult = await analyzeRecommendations(joinedTitles);
                 console.log('Filter', filterResult);
                 sendResponse(filterResult);
             } else {
@@ -43,11 +42,13 @@ async function analyzeRecommendations(titles: string) {
     const { openAIApiKey } = await savedSettingsStorage.get();
 
     const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a list of video titles they've got.
-        The list is split with ","
+        The list is split with "///"
         Evaluate each video and determine if it should be shown to the user or not, true is should show false is hide it from user.
-        return a JSON response including one item "result", response has to be pure JSON, no other words or characters.
+        Make sure you evaluate the video based on all of the user's goals, any unrelated video shown will can be a negative distraction.
+        return a JSON response including two items "result", and "reason", response has to be pure JSON, no other words or characters.
         "result" contains a list of boolean values mapping back to the original list,
-        The list should be the same length as the original list
+        "reason" is a list of strings, each string contains one short sentence, summary of the video and sentence and the reason for the evaluation result,
+        The list must be the same length as the original list
         `;
     const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate the following video titles: "${titles}".`;
     console.log(prompt);
