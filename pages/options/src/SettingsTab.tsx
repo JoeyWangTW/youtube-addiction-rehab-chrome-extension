@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { savedSettingsStorage} from '@chrome-extension-boilerplate/storage';
+import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 
 // TODO: import type from stroage file
 type UserSettings = {
-    openAIApiKey: string;
-    anthropicApiKey: string;
-    blockerEnabled: boolean;
-    videoEvalEnabled: boolean;
-    filterEnabled: boolean;
-    llmModel: string;
-    aiProvider: 'openai' | 'anthropic';
+  openAIApiKey: string;
+  anthropicApiKey: string;
+  blockerEnabled: boolean;
+  videoEvalEnabled: boolean;
+  filterEnabled: boolean;
+  llmModel: string;
+  aiProvider: 'openai' | 'anthropic';
 };
 
 const SettingsTab = () => {
@@ -56,9 +56,10 @@ const SettingsTab = () => {
           value={settings.openAIApiKey}
           onChange={e => handleChange('openAIApiKey', e.target.value)}
         />
+        <div className='text-gray-500'>API keys will only be stored on your device.</div>
       </div>
 
-      <div className="mb-4">
+      <div className='mb-4'>
         <label htmlFor="anthropic-api-key" className="block text-sm font-medium text-white">
           Anthropic API Key
         </label>
@@ -69,6 +70,7 @@ const SettingsTab = () => {
           value={settings.anthropicApiKey}
           onChange={e => handleChange('anthropicApiKey', e.target.value)}
         />
+        <div className='text-gray-500'>API keys will only be stored on your device.</div>
       </div>
 
       <div className="mb-4">
