@@ -366,6 +366,26 @@ async function analyzeHome(filterEnabled: boolean) {
   }
 }
 
+
+function hideShorts() {
+  const shortsObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            if ((node.tagName === 'YTD-RICH-SHELF-RENDERER' || node.tagName === 'YTD-REEL-SHELF-RENDERER')) {
+              node.style.display = 'none';
+            }
+          }
+        });
+      }
+    });
+  });
+
+  shortsObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+
 document.addEventListener('yt-page-data-updated', async () => {
   removeElementsByIds([
     'analyzing-video',
@@ -374,8 +394,11 @@ document.addEventListener('yt-page-data-updated', async () => {
     'video-warning',
     'title-eval',
   ]);
-  const { blockerEnabled, videoEvalEnabled, filterEnabled } = await savedSettingsStorage.get();
+  const { blockerEnabled, videoEvalEnabled, filterEnabled, hideShortsEnabled } = await savedSettingsStorage.get();
 
+  if (hideShortsEnabled) {
+    hideShorts();
+  }
   if (window.location.pathname.includes('/watch')) {
     if (blockerEnabled || videoEvalEnabled) {
       analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
@@ -383,14 +406,15 @@ document.addEventListener('yt-page-data-updated', async () => {
     if (filterEnabled) {
       analyzeRecommendation();
     }
-  } else if (window.location.href === 'https://www.youtube.com/' && filterEnabled) {
-    analyzeHome(filterEnabled);
+  } else if (window.location.href === 'https://www.youtube.com/' || window.location.href.includes('youtube.com/feed/subscriptions')) {
+    if (filterEnabled) {
+      analyzeHome(filterEnabled);
+    }
   } else {
     const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
     shouldPauseVideo = false;
     if (videoPlayer) {
       videoPlayer.play();
-
       return; // Exit if not on a watch page
     }
   }
