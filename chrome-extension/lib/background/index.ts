@@ -48,8 +48,13 @@ async function analyzeRecommendations(videoData: Record<string, string>) {
         Return the result as a JSON object where the keys are the video IDs and the values are the reasons for showing the video.`;
 
     const result = await fetchChatCompletion(systemPrompt, prompt);
-    console.log(result)
-    const analysisResult = JSON.parse(result);
+    let analysisResult;
+    try {
+        analysisResult = JSON.parse(result);
+    } catch (error) {
+        console.error('Failed to parse JSON:', result);
+        throw error;
+    }
 
     return analysisResult;
 }
