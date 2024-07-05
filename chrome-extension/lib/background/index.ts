@@ -46,13 +46,14 @@ async function analyzeRecommendations(videoData: Record<string, string>) {
         Make sure you evaluate the video based on all of the user's goals. Any unrelated video shown can be a negative distraction.
         Return a JSON object where each key is the video ID and the value is a short sentence explaining why the video should be shown.
         Only include videos that should be shown in the response.
-        response must be pure json without any other text`;
+        response must be pure JSON without any other text, and it needs to be valid JSON`;
 
     const prompt = `Given the user's goal: "${helpful}", and videos to avoid: "${harmful}", evaluate the following video data: ${JSON.stringify(videoData)}.
         Return the result as a JSON object where the keys are the video IDs and the values are the reasons for showing the video.`;
 
     console.log(prompt);
     const result = await fetchChatCompletion(systemPrompt, prompt);
+    console.log("result", result)
     const analysisResult = JSON.parse(result);
 
     return analysisResult;
