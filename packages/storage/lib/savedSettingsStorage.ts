@@ -20,8 +20,8 @@ const defaultSettings: UserSettings = {
     videoEvalEnabled: true,
     filterEnabled: false,
     hideShortsEnabled: false,
-    llmModel: 'gpt-3.5-turbo',
-    aiProvider: 'openai',
+    llmModel: 'claude-3-haiku-20240307',
+    aiProvider: 'anthropic',
 };
 
 const settingsStorage = createStorage<UserSettings>('user-settings-storage-key', defaultSettings, {
