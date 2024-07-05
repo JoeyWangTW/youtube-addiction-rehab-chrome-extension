@@ -9,6 +9,7 @@ type UserSettings = {
   blockerEnabled: boolean;
   videoEvalEnabled: boolean;
   filterEnabled: boolean;
+  hideShortsEnabled: boolean;
   llmModel: string;
   aiProvider: 'openai' | 'anthropic';
 };
@@ -73,7 +74,7 @@ const SettingsTab = () => {
         <div className='text-gray-500'>API keys will only be stored on your device.</div>
       </div>
 
-      <div className="mb-4">
+      <div className='mb-4'>
         <label htmlFor="model-select" className="block text-sm font-medium text-white">
           Choose a model:
         </label>
@@ -105,6 +106,14 @@ const SettingsTab = () => {
             </>
           )}
         </select>
+      </div>
+
+      <div className='flex flex-row items-center mb-4 p-2 w-96 border border-gray-600 rounded-md'>
+        <div className='mr-2'>⚡</div>
+        <p className='text-sm text-gray-300'>
+          Recommend using <strong>Anthropic - Claude 3 Haiku </strong>
+          for good results, cost-efficiency, and quick response times.
+        </p>
       </div>
 
       <h2 className="text-2xl font-bold mb-4">Smart Features</h2>
@@ -150,6 +159,18 @@ const SettingsTab = () => {
             onChange={() => handleChange('videoEvalEnabled', !settings.videoEvalEnabled)}
           />
           <span>Enable Video Evaluation</span>
+        </label>
+      </div>
+      <div className="mb-4">
+        <label htmlFor="hideShorts" className="flex items-center space-x-2">
+          <input
+            id="hideShorts"
+            type="checkbox"
+            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+            checked={settings.hideShortsEnabled}
+            onChange={() => handleChange('hideShortsEnabled', !settings.hideShortsEnabled)}
+          />
+          <span>Hide Shorts (Just hide them, shorts are bad)</span>
         </label>
       </div>
       {hasChanges() && (

@@ -6,6 +6,7 @@ type UserSettings = {
     blockerEnabled: boolean;
     videoEvalEnabled: boolean;
     filterEnabled: boolean;
+    hideShortsEnabled: boolean;
     llmModel: string;
     aiProvider: 'openai' | 'anthropic';
 };
@@ -18,8 +19,9 @@ const defaultSettings: UserSettings = {
     blockerEnabled: false,
     videoEvalEnabled: true,
     filterEnabled: false,
-    llmModel: 'gpt-3.5-turbo',
-    aiProvider: 'openai',
+    hideShortsEnabled: false,
+    llmModel: 'claude-3-haiku-20240307',
+    aiProvider: 'anthropic',
 };
 
 const settingsStorage = createStorage<UserSettings>('user-settings-storage-key', defaultSettings, {

@@ -37,6 +37,7 @@ const InfoTab = () => {
             <a className='text-blue-500' href="https://docs.anthropic.com/en/api/getting-started"> Anthropic </a>
             and enter it in the settings tab. Remember to set a quota for the API key to prevent overusage.
           </p>
+
           <p>
             Join our <a className='text-blue-500' target='_blank'
               href="https://forms.gle/UKEvxLEg8vrR6XCX6"> Waitlist </a> to get access to the version that doesn't require an API key.
@@ -49,6 +50,14 @@ const InfoTab = () => {
             GPT-3.5 and Claude 3 Haiku is faster and cheaper but less accurate.
           </p>
         </li>
+
+        <div className='flex flex-row items-center mb-4 p-2 w-128 border border-gray-600 rounded-md'>
+          <div className='mr-2'>⚡</div>
+          <p className='text-sm text-gray-300'>
+            Recommend using <strong>Anthropic - Claude 3 Haiku </strong>
+            for good results, cost-efficiency, and quick response times.
+          </p>
+        </div>
         <li className='mb-2'>
           <strong>Enable AI Blocker and Filter:</strong>
           <p className='mt-2'>

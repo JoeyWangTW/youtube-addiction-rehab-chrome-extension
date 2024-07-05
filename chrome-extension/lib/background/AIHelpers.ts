@@ -19,7 +19,7 @@ export async function fetchChatCompletion(systemPrompt: string, prompt: string):
         if (aiProvider === 'openai') {
             return fetchOpenAIChatCompletion(openAIApiKey, llmModel, formatPrompt(systemPrompt, prompt));
         } else if (aiProvider === 'anthropic') {
-            return fetchAnthropicChatCompletion(anthropicApiKey,llmModel, systemPrompt, prompt);
+            return fetchAnthropicChatCompletion(anthropicApiKey, llmModel, systemPrompt, prompt);
         } else {
             throw new Error('Invalid AI provider');
         }
@@ -40,7 +40,6 @@ async function fetchOpenAIChatCompletion(apiKey: string, model: string, messages
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
     };
-    console.log(data, headers)
 
     const response = await axios.post<ChatCompletionResponse>(url, data, { headers });
 
@@ -57,7 +56,7 @@ async function fetchAnthropicChatCompletion(apiKey: string, model: string, syste
         model: model,
         system: systemPrompt,
         max_tokens: 2048,
-        messages: [{role: 'user', content: prompt}]
+        messages: [{ role: 'user', content: prompt }]
     };
     const headers = {
         'X-API-Key': apiKey,
