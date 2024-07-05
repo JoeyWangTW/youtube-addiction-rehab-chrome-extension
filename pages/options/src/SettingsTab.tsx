@@ -9,6 +9,7 @@ type UserSettings = {
   blockerEnabled: boolean;
   videoEvalEnabled: boolean;
   filterEnabled: boolean;
+  hideShortsEnabled: boolean;
   llmModel: string;
   aiProvider: 'openai' | 'anthropic';
 };
@@ -150,6 +151,18 @@ const SettingsTab = () => {
             onChange={() => handleChange('videoEvalEnabled', !settings.videoEvalEnabled)}
           />
           <span>Enable Video Evaluation</span>
+        </label>
+      </div>
+      <div className="mb-4">
+        <label htmlFor="hideShorts" className="flex items-center space-x-2">
+          <input
+            id="hideShorts"
+            type="checkbox"
+            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+            checked={settings.hideShortsEnabled}
+            onChange={() => handleChange('hideShortsEnabled', !settings.hideShortsEnabled)}
+          />
+          <span>Hide Shorts (Just hide them, shorts are bad)</span>
         </label>
       </div>
       {hasChanges() && (

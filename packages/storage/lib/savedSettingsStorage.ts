@@ -6,6 +6,7 @@ type UserSettings = {
     blockerEnabled: boolean;
     videoEvalEnabled: boolean;
     filterEnabled: boolean;
+    hideShortsEnabled: boolean;
     llmModel: string;
     aiProvider: 'openai' | 'anthropic';
 };
@@ -18,6 +19,7 @@ const defaultSettings: UserSettings = {
     blockerEnabled: false,
     videoEvalEnabled: true,
     filterEnabled: false,
+    hideShortsEnabled: false,
     llmModel: 'gpt-3.5-turbo',
     aiProvider: 'openai',
 };
