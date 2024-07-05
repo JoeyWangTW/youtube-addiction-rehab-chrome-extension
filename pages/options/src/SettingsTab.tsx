@@ -14,6 +14,34 @@ type UserSettings = {
   aiProvider: 'openai' | 'anthropic';
 };
 
+interface ToggleSwitchProps {
+  id: string;
+  checked: boolean;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  label: string;
+  disabled?: boolean;
+}
+
+const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, label, disabled = false }) => (
+  <div className="flex items-center mb-4">
+    <label htmlFor={id} className={`flex items-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+      <div className="relative">
+        <input
+          type="checkbox"
+          id={id}
+          className="sr-only"
+          checked={checked}
+          onChange={onChange}
+          disabled={disabled}
+        />
+        <div className={`block w-10 h-6 rounded-full ${checked ? (disabled ? 'bg-green-300' : 'bg-green-600') : (disabled ? 'bg-gray-300' : 'bg-gray-600')}`}></div>
+        <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${checked ? 'transform translate-x-4' : ''}`}></div>
+      </div>
+      <div className="ml-3 text-white">{label}</div>
+    </label>
+  </div>
+);
+
 const SettingsTab = () => {
   const initialSettings = useStorageSuspense(savedSettingsStorage);
   const [settings, setSettings] = useState(initialSettings);
@@ -118,61 +146,40 @@ const SettingsTab = () => {
 
       <h2 className="text-2xl font-bold mb-4">Smart Features</h2>
 
-      <div className="mb-4">
-        <label htmlFor="ai-filter" className="flex items-center space-x-2">
-          <input
-            id="ai-filter"
-            type="checkbox"
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
-            checked={settings.filterEnabled}
-            onChange={() => handleChange('filterEnabled', !settings.filterEnabled)}
-          />
-          <span>Enable AI Filter</span>
-        </label>
-      </div>
-      <div className="mb-4">
-        <label htmlFor="ai-blocker" className="flex items-center space-x-2">
-          <input
-            id="ai-blocker"
-            type="checkbox"
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
-            checked={settings.blockerEnabled}
-            onChange={() => {
-              handleChange('blockerEnabled', !settings.blockerEnabled);
-              if (!settings.blockerEnabled) {
-                handleChange('videoEvalEnabled', true);
-              }
-            }}
-          />
-          <span>Enable AI Blocker</span>
-        </label>
-      </div>
+      <ToggleSwitch
+        id="ai-filter"
+        checked={settings.filterEnabled}
+        onChange={() => handleChange('filterEnabled', !settings.filterEnabled)}
+        label="Enable AI Filter"
+      />
 
-      <div className="mb-4">
-        <label htmlFor="videoEval" className="flex items-center space-x-2">
-          <input
-            id="videoEval"
-            type="checkbox"
-            disabled={settings.blockerEnabled}
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
-            checked={settings.videoEvalEnabled}
-            onChange={() => handleChange('videoEvalEnabled', !settings.videoEvalEnabled)}
-          />
-          <span>Enable Video Evaluation</span>
-        </label>
-      </div>
-      <div className="mb-4">
-        <label htmlFor="hideShorts" className="flex items-center space-x-2">
-          <input
-            id="hideShorts"
-            type="checkbox"
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
-            checked={settings.hideShortsEnabled}
-            onChange={() => handleChange('hideShortsEnabled', !settings.hideShortsEnabled)}
-          />
-          <span>Hide Shorts (Just hide them, shorts are bad)</span>
-        </label>
-      </div>
+      <ToggleSwitch
+        id="ai-blocker"
+        checked={settings.blockerEnabled}
+        onChange={() => {
+          handleChange('blockerEnabled', !settings.blockerEnabled);
+          if (!settings.blockerEnabled) {
+            handleChange('videoEvalEnabled', true);
+          }
+        }}
+        label="Enable AI Blocker"
+      />
+
+      <ToggleSwitch
+        id="videoEval"
+        checked={settings.videoEvalEnabled}
+        onChange={() => handleChange('videoEvalEnabled', !settings.videoEvalEnabled)}
+        label="Enable Video Evaluation"
+        disabled={settings.blockerEnabled}
+      />
+
+      <ToggleSwitch
+        id="hideShorts"
+        checked={settings.hideShortsEnabled}
+        onChange={() => handleChange('hideShortsEnabled', !settings.hideShortsEnabled)}
+        label="Hide Shorts (Just hide them, shorts are bad)"
+      />
+
       {hasChanges() && (
         <button
           className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"

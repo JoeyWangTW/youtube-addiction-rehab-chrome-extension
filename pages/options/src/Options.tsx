@@ -23,7 +23,10 @@ const Options = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-900">
-      <div className="text-xl font-bold p-4 shadow text-white">YouTube Addiction Rehab</div>
+      <div className='pl-4 flex flex-row items-center'>
+        <img src={chrome.runtime.getURL('options/logo.png')} className='w-10 h-10'></img>
+        <div className="text-xl font-bold p-4 shadow text-white">YouTube Addiction Rehab</div>
+      </div>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="w-64 bg-gray-800 shadow-md">
