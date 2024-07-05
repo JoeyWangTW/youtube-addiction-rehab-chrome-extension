@@ -40,8 +40,9 @@ export const Analyzing: React.FC = () => {
     <div className="w-full h-[500px] flex justify-center items-center">
       <div className="text-center text-white">
         <div className="animate-bounce text-7xl">🤖</div>
-        <div className="mt-8 text-7xl">Analyzing Content...</div>
+        <div className="mt-8 text-7xl font-mono">Analyzing Content...</div>
       </div>
     </div>
   );
 };
+
