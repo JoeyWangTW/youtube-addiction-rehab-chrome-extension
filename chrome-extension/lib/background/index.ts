@@ -9,9 +9,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             const videoTitle = message.videoTitle;
             if (videoTitle) {
                 console.log('Received video title in background:', videoTitle);
-                // You can perform further actions here, such as:
                 const analysisResult = await analyzeVideoTitle(videoTitle);
-                // Send decision back to content script
                 console.log('Result', analysisResult);
                 sendResponse(analysisResult);
             } else {
@@ -23,7 +21,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             const videoData = message.videoData;
             console.log('Received recommended video data in background:', videoData);
             if (videoData && Object.keys(videoData).length > 0) {
-                console.log('Received recommended video data in background:', videoData);
                 const filterResult = await analyzeRecommendations(videoData);
                 console.log('Filter', filterResult);
                 sendResponse(filterResult);
@@ -39,7 +36,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 async function analyzeRecommendations(videoData: Record<string, string>) {
     const { helpful, harmful } = await savedGoalsStorage.get();
-    const { openAIApiKey } = await savedSettingsStorage.get();
 
     const systemPrompt = `You are a YouTube addiction rehab expert. The user will provide their goals, videos to avoid, and a JSON object of video IDs and titles.
         Evaluate each video and determine if it should be shown to the user or not.
@@ -51,9 +47,8 @@ async function analyzeRecommendations(videoData: Record<string, string>) {
     const prompt = `Given the user's goal: "${helpful}", and videos to avoid: "${harmful}", evaluate the following video data: ${JSON.stringify(videoData)}.
         Return the result as a JSON object where the keys are the video IDs and the values are the reasons for showing the video.`;
 
-    console.log(prompt);
     const result = await fetchChatCompletion(systemPrompt, prompt);
-    console.log("result", result)
+    console.log(result)
     const analysisResult = JSON.parse(result);
 
     return analysisResult;
@@ -61,13 +56,6 @@ async function analyzeRecommendations(videoData: Record<string, string>) {
 
 async function analyzeVideoTitle(title: string) {
     const { helpful, harmful } = await savedGoalsStorage.get();
-    const { openAIApiKey, blockerEnabled } = await savedSettingsStorage.get();
-    // Placeholder for title analysis logic
-    console.log('Analyzing title:', title);
-    console.log(helpful, harmful, openAIApiKey, blockerEnabled);
-    // Example of a possible API call to analyze the title
-    // This can be an internal logic or an external API call
-    // Here we just log to the console for demonstration
 
     const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a video title they are watching.
         return a json response including two items.
