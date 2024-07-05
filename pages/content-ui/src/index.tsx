@@ -200,18 +200,35 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
   }
 }
 
-async function evaluateAndFilterVideos(videoRenderers: HTMLElement[], videoTitles: string[]) {
+async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
   console.log('send recommendationLoaded');
-  const evaluationResults = await chrome.runtime.sendMessage({ type: 'recommendationsLoaded', videoTitles });
 
+  const videoData = videoRenderers.map((renderer, index) => {
+    const titleElement = renderer.querySelector('#video-title');
+    const title = titleElement ? titleElement.textContent?.trim() || '' : '';
+    const id = `video-${index}-${Date.now()}`; // Create a unique ID
+    renderer.setAttribute('data-video-id', id); // Set the ID as a data attribute
+    return { id, title };
+  });
+
+  const evaluationResults = await chrome.runtime.sendMessage({
+    type: 'recommendationsLoaded',
+    videoData: Object.fromEntries(videoData.map(({ id, title }) => [id, title]))
+  });
   console.log(evaluationResults);
-  videoRenderers.forEach((renderer, index) => {
-    if (!evaluationResults.result[index]) {
-      renderer.style.pointerEvents = 'none';
-      renderer.style.display = 'none';
-    } else {
+  videoRenderers.forEach((renderer) => {
+    const id = renderer.getAttribute('data-video-id');
+    if (id && id in evaluationResults) {
       renderer.style.pointerEvents = 'auto';
       renderer.style.opacity = '1';
+      renderer.style.display = ''; // Reset display to default
+
+      // Optionally, you can use the reason if needed
+      // const reason = evaluationResults[id];
+      // console.log(`Video ${id} is shown because: ${reason}`);
+    } else {
+      renderer.style.pointerEvents = 'none';
+      renderer.style.display = 'none';
     }
   });
   return true;
@@ -235,10 +252,6 @@ async function analyzeRecommendation() {
       obs.disconnect();
 
       const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
-      const videoTitles: string[] = newVideos.map(renderer => {
-        const titleElement = renderer.querySelector('#video-title');
-        return titleElement ? titleElement.textContent?.trim() || '' : '';
-      });
 
 
       if (lastAnalyzedCount > 0 && newVideos.length > 0) {
@@ -255,7 +268,7 @@ async function analyzeRecommendation() {
       }
 
       if (newVideos.length > 0) {
-        await evaluateAndFilterVideos(newVideos, videoTitles);
+        await evaluateAndFilterVideos(newVideos);
       }
 
       if (lastAnalyzedCount > 0 && newVideos.length > 0) {
@@ -304,10 +317,6 @@ async function analyzeHome(filterEnabled: boolean) {
         obs.disconnect();
 
         const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
-        const videoTitles: string[] = newVideos.map(renderer => {
-          const titleElement = renderer.querySelector('#video-title');
-          return titleElement ? titleElement.textContent?.trim() || '' : '';
-        });
 
 
         if (lastAnalyzedCount > 0 && newVideos.length > 0) {
@@ -322,7 +331,7 @@ async function analyzeHome(filterEnabled: boolean) {
         }
 
         if (newVideos.length > 0) {
-          await evaluateAndFilterVideos(newVideos, videoTitles);
+          await evaluateAndFilterVideos(newVideos);
         }
 
         if (lastAnalyzedCount > 0 && newVideos.length > 0) {

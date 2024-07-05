@@ -20,15 +20,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         }
 
         if (message.type === 'recommendationsLoaded') {
-            const videoTitles = message.videoTitles;
-            if (videoTitles) {
-                console.log('Received recommended video titles in background:', videoTitles);
-                const joinedTitles = videoTitles.join('///');
-                const filterResult = await analyzeRecommendations(joinedTitles);
+            const videoData = message.videoData;
+            console.log('Received recommended video data in background:', videoData);
+            if (videoData && Object.keys(videoData).length > 0) {
+                console.log('Received recommended video data in background:', videoData);
+                const filterResult = await analyzeRecommendations(videoData);
                 console.log('Filter', filterResult);
                 sendResponse(filterResult);
             } else {
-                console.log('No titles received or title is empty.');
+                console.log('No video data received or data is empty.');
             }
         }
     })();
@@ -37,23 +37,24 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
 });
 
-async function analyzeRecommendations(titles: string) {
+async function analyzeRecommendations(videoData: Record<string, string>) {
     const { helpful, harmful } = await savedGoalsStorage.get();
     const { openAIApiKey } = await savedSettingsStorage.get();
 
-    const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a list of video titles they've got.
-        The list is split with "///"
-        Evaluate each video and determine if it should be shown to the user or not, true is should show false is hide it from user.
-        Make sure you evaluate the video based on all of the user's goals, any unrelated video shown will can be a negative distraction.
-        return a JSON response including two items "result", and "reason", response has to be pure JSON, no other words or characters.
-        "result" contains a list of boolean values mapping back to the original list,
-        "reason" is a list of strings, each string contains one short sentence, summary of the video and sentence and the reason for the evaluation result,
-        The list must be the same length as the original list
-        `;
-    const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate the following video titles: "${titles}".`;
+    const systemPrompt = `You are a YouTube addiction rehab expert. The user will provide their goals, videos to avoid, and a JSON object of video IDs and titles.
+        Evaluate each video and determine if it should be shown to the user or not.
+        Make sure you evaluate the video based on all of the user's goals. Any unrelated video shown can be a negative distraction.
+        Return a JSON object where each key is the video ID and the value is a short sentence explaining why the video should be shown.
+        Only include videos that should be shown in the response.
+        response must be pure json without any other text`;
+
+    const prompt = `Given the user's goal: "${helpful}", and videos to avoid: "${harmful}", evaluate the following video data: ${JSON.stringify(videoData)}.
+        Return the result as a JSON object where the keys are the video IDs and the values are the reasons for showing the video.`;
+
     console.log(prompt);
     const result = await fetchChatCompletion(systemPrompt, prompt);
     const analysisResult = JSON.parse(result);
+
     return analysisResult;
 }
 
