@@ -9,6 +9,10 @@ type UserSettings = {
     hideShortsEnabled: boolean;
     llmModel: string;
     aiProvider: 'openai' | 'anthropic';
+    apiErrorStatus: {
+        type: 'AUTH' | 'RATE_LIMIT' | null;
+        timestamp: number | null;
+    };
 };
 
 type SettingsStorage = BaseStorage<UserSettings>;
@@ -22,6 +26,10 @@ const defaultSettings: UserSettings = {
     hideShortsEnabled: false,
     llmModel: 'claude-3-haiku-20240307',
     aiProvider: 'anthropic',
+    apiErrorStatus: {
+        type: null,
+        timestamp: null,
+    },
 };
 
 const settingsStorage = createStorage<UserSettings>('user-settings-storage-key', defaultSettings, {
