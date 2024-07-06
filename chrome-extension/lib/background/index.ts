@@ -55,7 +55,6 @@ async function analyzeRecommendations(videoData: Record<string, string>) {
         throw error;
     }
 
-    await updateBadge(); // Update badge after successful API call
     return analysisResult;
 }
 
@@ -76,14 +75,12 @@ async function analyzeVideoTitle(title: string) {
     const prompt = `Given the user's goal: "${helpful}", and video to avoid: "${harmful}", evaluate if the following video title is relevant, should be avoided, or not sure: "${title}".`;
     const result = await fetchChatCompletion(systemPrompt, prompt);
     const analysisResult = JSON.parse(result);
-    await updateBadge(); // Update badge after successful API call
     return analysisResult;
 }
 
-// Add this function to update the badge
 async function updateBadge() {
     const { apiErrorStatus } = await savedSettingsStorage.get();
-    if (apiErrorStatus) {
+    if (apiErrorStatus && apiErrorStatus.type) {
         const badgeText = (apiErrorStatus.type === 'AUTH' || apiErrorStatus.type === 'RATE_LIMIT') ? '!' : '';
         await chrome.action.setBadgeText({ text: badgeText });
         await chrome.action.setBadgeBackgroundColor({ color: '#FF0000' });
@@ -92,6 +89,10 @@ async function updateBadge() {
     }
 }
 
-// Call updateBadge when the extension starts
+// Use savedSettingsStorage to listen for changes
+savedSettingsStorage.subscribe(() => {
+    updateBadge();
+});
+
 chrome.runtime.onStartup.addListener(updateBadge);
 chrome.runtime.onInstalled.addListener(updateBadge);
