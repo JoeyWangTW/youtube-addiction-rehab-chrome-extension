@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface TitleEvalResultProps {
   result: {
@@ -22,16 +22,48 @@ const ratingToClassName = (rating: string): string => {
   }
 };
 
-export const TitleEvalResult: React.FC<TitleEvalResultProps> = ({ result }) => {
-  useEffect(() => {
-    console.log('NEW content ui loaded');
-  }, []);
-
+export const TitleEvalResult: React.FC<TitleEvalResultProps & { onUnblock?: () => void }> = ({ result, onUnblock }) => {
+  const [showInput, setShowInput] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const ratingColor = ratingToClassName(result.evaluation_rating);
+
+  const handleButtonClick = () => {
+    setShowInput(true);
+  };
+
+  useEffect(() => {
+    if (inputValue === 'this video is not a distraction' && onUnblock) {
+      onUnblock();
+    }
+  }, [inputValue, onUnblock]);
+
   return (
-    <div className={`my-8 flex flex-col gap-1 text-black rounded-xl p-4 text-xl ${ratingColor}`}>
+    <div className={`w-2/3 my-8 text-black rounded-xl p-4 text-xl ${ratingColor}`}>
       <p>{result.evaluation_context}</p>
-    </div>
+      {(result.evaluation_rating === 'not_sure' || result.evaluation_rating === 'irrelevant') && onUnblock && (
+        <div className="flex justify-end items-end">
+          {!showInput && (
+            <button onClick={handleButtonClick} className="mt-2 p-2 bg-gray-200 text-gray-500 rounded-xl">
+              Unblock
+            </button>)
+          }
+          {showInput && (
+            <div className="mt-4 w-full">
+              <div className="text-gray-500 mb-2">Type <strong>"this video is not a distraction"</strong> to unblock</div>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="p-4 border rounded w-full"
+                placeholder="Persistence is the key to success"
+                onKeyDown={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+        </div>
+      )
+      }
+    </div >
   );
 };
 
