@@ -141,40 +141,6 @@ const SettingsTab = () => {
             </select>
           </div>
 
-          <div className='mb-4'>
-            <label htmlFor="model-select" className="block text-sm font-medium text-white">
-              Choose a model:
-            </label>
-            <select
-              id="model-select"
-              name="model"
-              value={settings.llmModel}
-              className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
-              onChange={e => {
-                const selectedModel = e.currentTarget.value;
-                handleChange('llmModel', selectedModel);
-                if (selectedModel.startsWith('gpt')) {
-                  handleChange('aiProvider', 'openai');
-                } else if (selectedModel.startsWith('claude')) {
-                  handleChange('aiProvider', 'anthropic');
-                }
-              }}>
-              {settings.openAIApiKey && (
-                <>
-                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                  <option value="gpt-4o">GPT-4o</option>
-                </>
-              )}
-              {settings.anthropicApiKey && (
-                <>
-                  <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-                  <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
-                  <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
-                </>
-              )}
-            </select>
-          </div>
-
           <div className='flex flex-row items-center mb-4 p-2 w-96 border border-gray-600 rounded-md'>
             <div className='mr-2'>⚡</div>
             <p className='text-sm text-gray-300'>

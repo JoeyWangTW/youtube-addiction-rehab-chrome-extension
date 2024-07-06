@@ -53,12 +53,18 @@ interface EvaluationResult {
   evaluation_context: string;
 }
 
-function addWarningForVideo(node: HTMLElement, id: string, result: EvaluationResult) {
+function addWarningForVideo(node: HTMLElement, id: string, result: EvaluationResult, onUnblock: () => void) {
   addCoveredComponent(
     node,
     id,
     <div className="w-full h-[500px] flex justify-center items-center px-16">
-      <TitleEvalResult result={result} />{' '}
+      <TitleEvalResult result={result} onUnblock={() => {
+        const warningElement = document.getElementById(id);
+        if (warningElement) {
+          warningElement.style.display = 'none';
+        }
+        onUnblock();
+      }} />{' '}
     </div>,
   );
 }
@@ -180,7 +186,18 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
     if (blockerEnabled && response.evaluation_rating !== 'relevant') {
       removeAnalyzingSpinner('analyzing-video');
       if (primaryElement) {
-        addWarningForVideo(primaryElement, 'video-warning', response);
+        addWarningForVideo(primaryElement, 'video-warning', response, () => {
+          showArea('#primary-inner');
+          const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
+          shouldPauseVideo = false;
+          if (videoPlayer) {
+            videoPlayer.play();
+          }
+          const titleElement = document.querySelector('ytd-watch-metadata #title') as HTMLElement;
+          if (titleElement) {
+            addTitleEval(response, titleElement);
+          }
+        });
       }
     } else {
       if (blockerEnabled) {
