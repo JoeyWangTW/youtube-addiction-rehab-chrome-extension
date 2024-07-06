@@ -10,7 +10,7 @@ interface TitleEvalResultProps {
 const ratingToClassName = (rating: string): string => {
   switch (rating) {
     case 'relevant':
-      return 'bg-green-200'; // Corresponding Tailwind class
+      return 'bg-green-200';
     case 'not_sure':
       return 'bg-yellow-200';
     case 'irrelevant':

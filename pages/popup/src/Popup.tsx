@@ -12,7 +12,6 @@ const GoalsEditor = ({ disabled }: { disabled: boolean }) => {
   const initialGoals = useRef({ helpful, harmful });
 
   useEffect(() => {
-    // Update the ref when the component mounts
     initialGoals.current = { helpful, harmful };
   }, [helpful, harmful]);
 
@@ -70,7 +69,7 @@ const GoalsEditor = ({ disabled }: { disabled: boolean }) => {
 
 const Popup = () => {
   const openOptionsPage = () => {
-    chrome.runtime.openOptionsPage(); // This opens the options page.
+    chrome.runtime.openOptionsPage();
   };
 
   const { openAIApiKey, apiErrorStatus } = useStorageSuspense(savedSettingsStorage);

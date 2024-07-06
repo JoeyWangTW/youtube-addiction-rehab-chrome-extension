@@ -89,7 +89,6 @@ async function updateBadge() {
     }
 }
 
-// Use savedSettingsStorage to listen for changes
 savedSettingsStorage.subscribe(() => {
     updateBadge();
 });

@@ -111,7 +111,7 @@ const observer = new MutationObserver(mutations => {
         videoNode.addEventListener('play', () => {
           if (shouldPauseVideo) {
             console.log('Video started playing, pausing video...');
-            videoNode.pause(); // This pauses the video when it starts playing
+            videoNode.pause();
             observer.disconnect();
           }
         });
@@ -179,7 +179,7 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
     // Get the video title text
     const videoTitle = metaDataElement.querySelector('yt-formatted-string')?.textContent;
 
-    console.log(videoTitle);
+    console.log("Evaluate video: ", videoTitle);
     // Send the video title to the background script
     const response = await chrome.runtime.sendMessage({ type: 'newVideoLoaded', videoTitle });
 
@@ -218,8 +218,6 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
 }
 
 async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
-  console.log('send recommendationLoaded');
-
   const videoData = videoRenderers.map((renderer, index) => {
     const titleElement = renderer.querySelector('#video-title');
     const title = titleElement ? titleElement.textContent?.trim() || '' : '';
@@ -232,17 +230,13 @@ async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
     type: 'recommendationsLoaded',
     videoData: Object.fromEntries(videoData.map(({ id, title }) => [id, title]))
   });
-  console.log(evaluationResults);
+  console.log("Evaluation results: ", evaluationResults);
   videoRenderers.forEach((renderer) => {
     const id = renderer.getAttribute('data-video-id');
     if (id && id in evaluationResults) {
       renderer.style.pointerEvents = 'auto';
       renderer.style.opacity = '1';
       renderer.style.display = ''; // Reset display to default
-
-      // Optionally, you can use the reason if needed
-      // const reason = evaluationResults[id];
-      // console.log(`Video ${id} is shown because: ${reason}`);
     } else {
       renderer.style.pointerEvents = 'none';
       renderer.style.display = 'none';
