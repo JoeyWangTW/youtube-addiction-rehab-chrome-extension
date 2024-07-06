@@ -30,6 +30,24 @@ YouTube Addiction Rehab is your digital ally against compulsive video watching o
 - AI Content Evaluation: Evaluates the relevance of the recommended content based on your preferences.
 - AI Content Filtering: Automatically filters out non-essential recommended content based on your preferences.
 - AI Video Blocker: Automatically blocks distracting videos based on your preferences.
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+  <div style="flex: 1; min-width: 40%;">
+    <span>Home page before filter</span>
+    <img src="./demo/before.png" alt="Before"/>
+  </div>
+  <div style="flex: 1; min-width: 40%;">
+    <span>Home page after filter</span>
+    <img src="./demo/after.png" alt="After"/>
+  </div>
+  <div style="flex: 1; min-width: 40%;">
+    <span>Analyzing</span>
+    <img src="./demo/analyzing.png" alt="Analyzing"/>
+  </div>
+  <div style="flex: 1; min-width: 40%;">
+    <span>Video Blocked</span>
+    <img src="./demo/blocked_video.png" alt="Blocked"/>
+  </div>
+</div>
 
 ## Prerequisites <a name="prerequisites"></a>
 
