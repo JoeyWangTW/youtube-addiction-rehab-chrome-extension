@@ -1,7 +1,7 @@
 import '@src/Popup.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
-import { savedGoalsStorage,savedSettingsStorage  } from '@chrome-extension-boilerplate/storage';
+import { savedGoalsStorage, savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 
 const GoalsEditor = ({ disabled }: { disabled: boolean }) => {
   const { helpful, harmful } = useStorageSuspense(savedGoalsStorage);
@@ -73,8 +73,7 @@ const Popup = () => {
     chrome.runtime.openOptionsPage(); // This opens the options page.
   };
 
-
-  const { openAIApiKey} = useStorageSuspense(savedSettingsStorage);
+  const { openAIApiKey, apiErrorStatus } = useStorageSuspense(savedSettingsStorage);
 
   return (
     <div>
@@ -83,15 +82,20 @@ const Popup = () => {
         <button
           onClick={openOptionsPage}
           className="block text-gray-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-          Settings 
+          Settings
         </button>
         {!openAIApiKey && (
-           <div >⬅️</div> 
+          <div >⬅️</div>
         )}
         {!openAIApiKey && (
-            <span className="text-red-500 text-sm ml-2 my-2">Please set up your API key in the settings.</span>
+          <span className="text-red-500 text-sm ml-2 my-2">Please set up your API key in the settings.</span>
         )}
       </div>
+      {apiErrorStatus.type && (
+        <div className="bg-red-500 text-white p-2 text-sm">
+          {apiErrorStatus.type === 'AUTH' ? 'Authentication error. Please check your API key.' : 'Rate limit exceeded. Please try again later or upgrade your plan.'}
+        </div>
+      )}
     </div>
   );
 };
