@@ -1,5 +1,5 @@
 <div align="center">
-<img src="chrome-extension/public/icon-128.png" alt="logo"/>
+<img src="chrome-extension/public/logo.png" alt="logo" width="128" height="128"/>
 <h1> Youtube Addiction Rehab
 
 ![](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
