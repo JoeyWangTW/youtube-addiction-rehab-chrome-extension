@@ -11,7 +11,6 @@ const GoalsTab = () => {
   const initialGoals = useRef({ helpful, harmful });
 
   useEffect(() => {
-    // Update the ref when the component mounts
     initialGoals.current = { helpful, harmful };
   }, [helpful, harmful]);
 

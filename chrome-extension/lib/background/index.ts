@@ -1,6 +1,5 @@
 import 'webextension-polyfill';
-import { savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
-import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
+import { savedGoalsStorage, savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 import { fetchChatCompletion } from './AIHelpers';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -65,7 +64,7 @@ async function analyzeVideoTitle(title: string) {
     const systemPrompt = `You are a youtube addiction rehab expert, user will provide their goal and a video title they are watching.
         return a json response including two items.
         1. evaluation_rating ( three possible options: "relevant", "not_sure", "irrelevant", "avoid")
-        2. evaluation_context ( one sentence about what's the video about and the relavency for user’s goal and the video)
+        2. evaluation_context ( one sentence about what's the video about and the relavency for user's goal and the video)
         Make sure you go thorugh all the user's goal, and rate relevancy based on all of them.
         In the evaluation_context, it should only show one sentence, the sentence should be user facing. And follow the instruction for the tone.
         If rating is "relavent", make the tone positive.
@@ -78,3 +77,21 @@ async function analyzeVideoTitle(title: string) {
     const analysisResult = JSON.parse(result);
     return analysisResult;
 }
+
+async function updateBadge() {
+    const { apiErrorStatus } = await savedSettingsStorage.get();
+    if (apiErrorStatus && apiErrorStatus.type) {
+        const badgeText = (apiErrorStatus.type === 'AUTH' || apiErrorStatus.type === 'RATE_LIMIT') ? '!' : '';
+        await chrome.action.setBadgeText({ text: badgeText });
+        await chrome.action.setBadgeBackgroundColor({ color: '#FF0000' });
+    } else {
+        await chrome.action.setBadgeText({ text: '' });
+    }
+}
+
+savedSettingsStorage.subscribe(() => {
+    updateBadge();
+});
+
+chrome.runtime.onStartup.addListener(updateBadge);
+chrome.runtime.onInstalled.addListener(updateBadge);

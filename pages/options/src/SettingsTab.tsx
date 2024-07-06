@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStorageSuspense, withErrorBoundary, withSuspense } from '@chrome-extension-boilerplate/shared';
 import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
 
-// TODO: import type from stroage file
+// TODO: import type from storage file
 type UserSettings = {
   openAIApiKey: string;
   anthropicApiKey: string;
@@ -52,7 +52,6 @@ const SettingsTab = () => {
   const [showSavedMessage, setShowSavedMessage] = useState(false);
 
   useEffect(() => {
-    // Update the state when the component mounts
     setSettings(initialSettings);
   }, [initialSettings]);
 

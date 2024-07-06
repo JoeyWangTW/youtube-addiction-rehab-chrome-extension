@@ -41,13 +41,37 @@ async function fetchOpenAIChatCompletion(apiKey: string, model: string, messages
         'Content-Type': 'application/json',
     };
 
-    const response = await axios.post<ChatCompletionResponse>(url, data, { headers });
-
-    if (response.data.choices && response.data.choices.length > 0) {
-        return response.data.choices[0].message.content;
-    } else {
-        return 'No response from OpenAI.';
-    }
+    return axios.post<ChatCompletionResponse>(url, data, { headers })
+        .then(response => {
+            if (response.data.choices && response.data.choices.length > 0) {
+                // Reset error status on successful request
+                savedSettingsStorage.set(prev => ({
+                    ...prev,
+                    apiErrorStatus: { type: null, timestamp: null }
+                }));
+                return response.data.choices[0].message.content;
+            } else {
+                return 'No response from OpenAI.';
+            }
+        })
+        .catch(error => {
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 401) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'AUTH', timestamp: Date.now() }
+                    }));
+                    throw new Error('Authentication failed. Please check your API key.');
+                } else if (error.response?.status === 429) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'RATE_LIMIT', timestamp: Date.now() }
+                    }));
+                    throw new Error('Rate limit exceeded. Please try again later.');
+                }
+            }
+            throw error;
+        });
 }
 
 async function fetchAnthropicChatCompletion(apiKey: string, model: string, systemPrompt: string, prompt: string): Promise<string> {
@@ -64,11 +88,35 @@ async function fetchAnthropicChatCompletion(apiKey: string, model: string, syste
         'Content-Type': 'application/json',
     };
 
-    const response = await axios.post<any>(url, data, { headers });
-
-    if (response.data.content) {
-        return response.data.content[0].text;
-    } else {
-        return 'No response from Anthropic.';
-    }
+    return axios.post<any>(url, data, { headers })
+        .then(response => {
+            if (response.data.content) {
+                // Reset error status on successful request
+                savedSettingsStorage.set(prev => ({
+                    ...prev,
+                    apiErrorStatus: { type: null, timestamp: null }
+                }));
+                return response.data.content[0].text;
+            } else {
+                return 'No response from Anthropic.';
+            }
+        })
+        .catch(error => {
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 401) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'AUTH', timestamp: Date.now() }
+                    }));
+                    throw new Error('Authentication failed. Please check your API key.');
+                } else if (error.response?.status === 429) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'RATE_LIMIT', timestamp: Date.now() }
+                    }));
+                    throw new Error('Rate limit exceeded. Please try again later.');
+                }
+            }
+            throw error;
+        });
 }
