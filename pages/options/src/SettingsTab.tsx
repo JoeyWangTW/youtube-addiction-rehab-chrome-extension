@@ -19,12 +19,13 @@ interface ToggleSwitchProps {
   checked: boolean;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   label: string;
+  description?: string;
   disabled?: boolean;
 }
 
-const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, label, disabled = false }) => (
+const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, label, description, disabled = false }) => (
   <div className="flex items-center mb-4">
-    <label htmlFor={id} className={`flex items-center ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+    <label htmlFor={id} className={`flex items-start ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
       <div className="relative">
         <input
           type="checkbox"
@@ -37,7 +38,10 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, labe
         <div className={`block w-10 h-6 rounded-full ${checked ? (disabled ? 'bg-green-300' : 'bg-green-600') : (disabled ? 'bg-gray-300' : 'bg-gray-600')}`}></div>
         <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${checked ? 'transform translate-x-4' : ''}`}></div>
       </div>
-      <div className="ml-3 text-white">{label}</div>
+      <div className='ml-3 flex flex-col'>
+        <div className='text-base text-white'>{label}</div>
+        {description && <div className='text-gray-500 text-sm max-w-[300px]'>{description}</div>}
+      </div>
     </label>
   </div>
 );
@@ -72,117 +76,160 @@ const SettingsTab = () => {
   return (
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
+      <div className='flex flex-row'>
+        <div className='mr-16'>
+          <h2 className="text-2xl font-bold mb-4">AI Settings</h2>
+          <div className="mb-4">
+            <label htmlFor="api-key" className="block text-sm font-medium text-white">
+              OpenAI API Key
+            </label>
+            <input
+              id="oepn-api-key"
+              type="password"
+              className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+              value={settings.openAIApiKey}
+              onChange={e => handleChange('openAIApiKey', e.target.value)}
+            />
+            <div className='text-gray-500'>API keys will only be stored on your device.</div>
+          </div>
 
-      <h2 className="text-2xl font-bold mb-4">AI Settings</h2>
-      <div className="mb-4">
-        <label htmlFor="api-key" className="block text-sm font-medium text-white">
-          OpenAI API Key
-        </label>
-        <input
-          id="oepn-api-key"
-          type="password"
-          className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
-          value={settings.openAIApiKey}
-          onChange={e => handleChange('openAIApiKey', e.target.value)}
-        />
-        <div className='text-gray-500'>API keys will only be stored on your device.</div>
+          <div className='mb-4'>
+            <label htmlFor="anthropic-api-key" className="block text-sm font-medium text-white">
+              Anthropic API Key
+            </label>
+            <input
+              id="anthropic-api-key"
+              type="password"
+              className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+              value={settings.anthropicApiKey}
+              onChange={e => handleChange('anthropicApiKey', e.target.value)}
+            />
+            <div className='text-gray-500'>API keys will only be stored on your device.</div>
+          </div>
+
+          <div className='mb-4'>
+            <label htmlFor="model-select" className="block text-sm font-medium text-white">
+              Choose a model:
+            </label>
+            <select
+              id="model-select"
+              name="model"
+              value={settings.llmModel}
+              className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+              onChange={e => {
+                const selectedModel = e.currentTarget.value;
+                handleChange('llmModel', selectedModel);
+                if (selectedModel.startsWith('gpt')) {
+                  handleChange('aiProvider', 'openai');
+                } else if (selectedModel.startsWith('claude')) {
+                  handleChange('aiProvider', 'anthropic');
+                }
+              }}>
+              {settings.openAIApiKey && (
+                <>
+                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                  <option value="gpt-4o">GPT-4o</option>
+                </>
+              )}
+              {settings.anthropicApiKey && (
+                <>
+                  <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                  <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                  <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
+                </>
+              )}
+            </select>
+          </div>
+
+          <div className='mb-4'>
+            <label htmlFor="model-select" className="block text-sm font-medium text-white">
+              Choose a model:
+            </label>
+            <select
+              id="model-select"
+              name="model"
+              value={settings.llmModel}
+              className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+              onChange={e => {
+                const selectedModel = e.currentTarget.value;
+                handleChange('llmModel', selectedModel);
+                if (selectedModel.startsWith('gpt')) {
+                  handleChange('aiProvider', 'openai');
+                } else if (selectedModel.startsWith('claude')) {
+                  handleChange('aiProvider', 'anthropic');
+                }
+              }}>
+              {settings.openAIApiKey && (
+                <>
+                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                  <option value="gpt-4o">GPT-4o</option>
+                </>
+              )}
+              {settings.anthropicApiKey && (
+                <>
+                  <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                  <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
+                  <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
+                </>
+              )}
+            </select>
+          </div>
+
+          <div className='flex flex-row items-center mb-4 p-2 w-96 border border-gray-600 rounded-md'>
+            <div className='mr-2'>⚡</div>
+            <p className='text-sm text-gray-300'>
+              Recommend using <strong>Anthropic - Claude 3 Haiku </strong>
+              for good results, cost-efficiency, and quick response times.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Smart Features</h2>
+          <ToggleSwitch
+            id="ai-filter"
+            checked={settings.filterEnabled}
+            onChange={() => handleChange('filterEnabled', !settings.filterEnabled)}
+            label="AI Filter"
+            description="Filter recommendations on the home page and related videos on the side bar."
+          />
+
+          <ToggleSwitch
+            id="ai-blocker"
+            checked={settings.blockerEnabled}
+            onChange={() => {
+              handleChange('blockerEnabled', !settings.blockerEnabled);
+              if (!settings.blockerEnabled) {
+                handleChange('videoEvalEnabled', true);
+              }
+            }}
+            label="AI Blocker"
+            description="Block videos that are not relevant to your goals."
+          />
+
+          <ToggleSwitch
+            id="videoEval"
+            checked={settings.videoEvalEnabled}
+            onChange={() => handleChange('videoEvalEnabled', !settings.videoEvalEnabled)}
+            label="Video Evaluation"
+            disabled={settings.blockerEnabled}
+            description="Evaluate videos to determine if they are relevant to your goals. 
+            (Default to enabled if AI Blocker is enabled.)"
+          />
+
+          <ToggleSwitch
+            id="hideShorts"
+            checked={settings.hideShortsEnabled}
+            onChange={() => handleChange('hideShortsEnabled', !settings.hideShortsEnabled)}
+            label="Hide Shorts"
+            description="Hide any shorts on the page."
+          />
+        </div>
       </div>
-
-      <div className='mb-4'>
-        <label htmlFor="anthropic-api-key" className="block text-sm font-medium text-white">
-          Anthropic API Key
-        </label>
-        <input
-          id="anthropic-api-key"
-          type="password"
-          className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
-          value={settings.anthropicApiKey}
-          onChange={e => handleChange('anthropicApiKey', e.target.value)}
-        />
-        <div className='text-gray-500'>API keys will only be stored on your device.</div>
-      </div>
-
-      <div className='mb-4'>
-        <label htmlFor="model-select" className="block text-sm font-medium text-white">
-          Choose a model:
-        </label>
-        <select
-          id="model-select"
-          name="model"
-          value={settings.llmModel}
-          className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
-          onChange={e => {
-            const selectedModel = e.currentTarget.value;
-            handleChange('llmModel', selectedModel);
-            if (selectedModel.startsWith('gpt')) {
-              handleChange('aiProvider', 'openai');
-            } else if (selectedModel.startsWith('claude')) {
-              handleChange('aiProvider', 'anthropic');
-            }
-          }}>
-          {settings.openAIApiKey && (
-            <>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-              <option value="gpt-4o">GPT-4o</option>
-            </>
-          )}
-          {settings.anthropicApiKey && (
-            <>
-              <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-              <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
-              <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
-            </>
-          )}
-        </select>
-      </div>
-
-      <div className='flex flex-row items-center mb-4 p-2 w-96 border border-gray-600 rounded-md'>
-        <div className='mr-2'>⚡</div>
-        <p className='text-sm text-gray-300'>
-          Recommend using <strong>Anthropic - Claude 3 Haiku </strong>
-          for good results, cost-efficiency, and quick response times.
-        </p>
-      </div>
-
-      <h2 className="text-2xl font-bold mb-4">Smart Features</h2>
-
-      <ToggleSwitch
-        id="ai-filter"
-        checked={settings.filterEnabled}
-        onChange={() => handleChange('filterEnabled', !settings.filterEnabled)}
-        label="Enable AI Filter"
-      />
-
-      <ToggleSwitch
-        id="ai-blocker"
-        checked={settings.blockerEnabled}
-        onChange={() => {
-          handleChange('blockerEnabled', !settings.blockerEnabled);
-          if (!settings.blockerEnabled) {
-            handleChange('videoEvalEnabled', true);
-          }
-        }}
-        label="Enable AI Blocker"
-      />
-
-      <ToggleSwitch
-        id="videoEval"
-        checked={settings.videoEvalEnabled}
-        onChange={() => handleChange('videoEvalEnabled', !settings.videoEvalEnabled)}
-        label="Enable Video Evaluation"
-        disabled={settings.blockerEnabled}
-      />
-
-      <ToggleSwitch
-        id="hideShorts"
-        checked={settings.hideShortsEnabled}
-        onChange={() => handleChange('hideShortsEnabled', !settings.hideShortsEnabled)}
-        label="Hide Shorts (Just hide them, shorts are bad)"
-      />
 
       {hasChanges() && (
         <button
-          className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          className="mt-8 block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           onClick={saveSettings}>
           Save Settings
         </button>
