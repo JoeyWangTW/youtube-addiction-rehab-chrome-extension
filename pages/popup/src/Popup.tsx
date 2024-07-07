@@ -72,21 +72,21 @@ const Popup = () => {
     chrome.runtime.openOptionsPage();
   };
 
-  const { openAIApiKey, apiErrorStatus } = useStorageSuspense(savedSettingsStorage);
+  const { openAIApiKey, anthropicApiKey, apiErrorStatus } = useStorageSuspense(savedSettingsStorage);
 
   return (
     <div>
-      <GoalsEditor disabled={!openAIApiKey} />
+      <GoalsEditor disabled={!openAIApiKey && !anthropicApiKey} />
       <div className="flex flex-row items-center bg-gray-900 border-t border-gray-500">
         <button
           onClick={openOptionsPage}
           className="block text-gray-300 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
           Settings
         </button>
-        {!openAIApiKey && (
+        {!openAIApiKey && !anthropicApiKey && (
           <div >⬅️</div>
         )}
-        {!openAIApiKey && (
+        {!openAIApiKey && !anthropicApiKey && (
           <span className="text-red-500 text-sm ml-2 my-2">Please set up your API key in the settings.</span>
         )}
       </div>
