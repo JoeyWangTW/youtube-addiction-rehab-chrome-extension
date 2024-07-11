@@ -40,7 +40,7 @@ async function analyzeRecommendations(videoData: Record<string, string>) {
         Evaluate each video and determine if it should be shown to the user or not.
         Make sure you evaluate the video based on all of the user's goals. Any unrelated video shown can be a negative distraction.
         Return a JSON object where each key is the video ID and the value is a short sentence explaining why the video should be shown.
-        Only include videos that should be shown in the response.
+        Only include videos that should be shown (which means related to the user's goals) in the response JSON.
         response must be pure JSON without any other text, and it needs to be valid JSON`;
 
     const prompt = `Given the user's goal: "${helpful}", and videos to avoid: "${harmful}", evaluate the following video data: ${JSON.stringify(videoData)}.
