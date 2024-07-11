@@ -303,6 +303,11 @@ async function analyzeRecommendation() {
     }
   });
 
+
+  document.addEventListener('yt-navigate-start', () => {
+    observer.disconnect();
+  });
+
   if (secondaryElement) {
     observer.observe(secondaryElement, {
       childList: true,
@@ -367,6 +372,10 @@ async function analyzeHome(filterEnabled: boolean) {
 
     });
 
+
+    document.addEventListener('yt-navigate-start', () => {
+      observer.disconnect();
+    });
 
     if (primaryElement) {
       observer.observe(primaryElement, {
