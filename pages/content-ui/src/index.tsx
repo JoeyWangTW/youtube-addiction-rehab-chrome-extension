@@ -386,24 +386,19 @@ async function analyzeHome(filterEnabled: boolean) {
   }
 }
 
-
 function hideShorts() {
-  const shortsObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'childList') {
-        mutation.addedNodes.forEach((node) => {
-          if (node instanceof HTMLElement) {
-            if ((node.tagName === 'YTD-RICH-SHELF-RENDERER' || node.tagName === 'YTD-REEL-SHELF-RENDERER')) {
-              node.style.display = 'none';
-            }
-          }
-        });
+  const existingStyle = document.getElementById('hide-shorts-style');
+  if (!existingStyle) {
+    const style = document.createElement('style');
+    style.id = 'hide-shorts-style';
+    style.innerHTML = `
+      ytd-rich-shelf-renderer, ytd-reel-shelf-renderer {
+          display: none !important;
       }
-    });
-  });
-
-  shortsObserver.observe(document.body, { childList: true, subtree: true });
-}
+    `;
+    document.head.appendChild(style);
+  }
+};
 
 
 document.addEventListener('yt-page-data-updated', async () => {
@@ -414,7 +409,11 @@ document.addEventListener('yt-page-data-updated', async () => {
     'video-warning',
     'title-eval',
   ]);
-  const { blockerEnabled, videoEvalEnabled, filterEnabled, hideShortsEnabled } = await savedSettingsStorage.get();
+  const { blockerEnabled,
+    videoEvalEnabled,
+    filterEnabled,
+    hideShortsEnabled
+  } = await savedSettingsStorage.get();
 
   if (hideShortsEnabled) {
     hideShorts();
