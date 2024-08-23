@@ -178,11 +178,12 @@ const SettingsTab = () => {
             </select>
           </div>
 
-          <div className='flex flex-row items-center mb-4 p-2 w-96 border border-gray-600 rounded-md'>
+          <div className='flex flex-row items-center mb-4 p-2 w-128 border border-gray-600 rounded-md w-96'>
             <div className='mr-2'>⚡</div>
             <p className='text-sm text-gray-300'>
-              Recommend using <strong>Anthropic - Claude 3 Haiku </strong>
-              for good results, cost-efficiency, and quick response times.
+              <strong>Recommend starting with smaller models such as Claude 3 Haiku, GPT-4o mini, LLaMA 3.1 70B.</strong>
+              <br />They are cheap and fast, with good enough results.
+              <br />If you want super low latency, go with Groq LLaMA 3.1 70B.
             </p>
           </div>
         </div>
