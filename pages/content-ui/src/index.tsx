@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { TitleEvalResult, Analyzing } from '@src/app';
-import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
+import { savedSettingsStorage, savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
 // eslint-disable-next-line
 // @ts-ignore
 import tailwindcssOutput from '@src/tailwind-output.css?inline';
@@ -36,17 +36,55 @@ function addCoveredComponent(node: HTMLElement, id: string, component: ReactElem
   createRoot(rootIntoShadow).render(component);
 }
 
-function addAnalyzingSpinner(node: HTMLElement, id: string) {
-  addCoveredComponent(node, id, <Analyzing />);
+function addAnalyzingSpinner(id: string) {
+  const root = document.createElement('div');
+  root.id = id;
+
+  document.body.appendChild(root);
+
+  const rootIntoShadow = document.createElement('div');
+  rootIntoShadow.id = 'shadow-root';
+
+  root.style.position = 'fixed';
+  root.style.top = '-100px';
+  root.style.left = '50%';
+  root.style.transform = 'translateX(-50%)';
+  root.style.zIndex = '9999';
+  root.style.transition = 'top 0.3s ease-out';
+
+  rootIntoShadow.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  rootIntoShadow.style.borderRadius = '20px';
+  rootIntoShadow.style.padding = '16px';
+  rootIntoShadow.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+
+  const shadowRoot = root.attachShadow({ mode: 'open' });
+  shadowRoot.appendChild(rootIntoShadow);
+
+  const styleElement = document.createElement('style');
+  styleElement.innerHTML = tailwindcssOutput;
+  shadowRoot.appendChild(styleElement);
+
+  createRoot(rootIntoShadow).render(<Analyzing />);
+
+  // Trigger the animation after a short delay
+  setTimeout(() => {
+    root.style.top = '60px';
+  }, 30);
 }
 
 function removeAnalyzingSpinner(id: string) {
   const root = document.getElementById(id);
 
   if (root) {
-    root.parentNode?.removeChild(root);
+    root.style.top = '-100px';
+    root.style.opacity = '0';
+    root.style.transition = 'top 0.3s ease-out, opacity 0.3s ease-out';
+    setTimeout(() => {
+      root.parentNode?.removeChild(root);
+    }, 300); // Wait for the transition to complete before removing
   }
 }
+
 
 interface EvaluationResult {
   evaluation_rating: string;
@@ -164,7 +202,7 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
   }
   if (blockerEnabled) {
     hideArea('#primary-inner');
-    addAnalyzingSpinner(primaryElement, 'analyzing-video');
+    addAnalyzingSpinner('analyzing-video');
     shouldPauseVideo = true;
   } else {
     const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
@@ -218,7 +256,7 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
 }
 
 async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
-  const videoData = videoRenderers.map((renderer, index) => {
+  const videos = videoRenderers.map((renderer, index) => {
     const titleElement = renderer.querySelector('#video-title');
     const title = titleElement ? titleElement.textContent?.trim() || '' : '';
     const id = `video-${index}-${Date.now()}`; // Create a unique ID
@@ -226,20 +264,32 @@ async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
     return { id, title };
   });
 
+  const videoData = { videos };
+
   const evaluationResults = await chrome.runtime.sendMessage({
     type: 'recommendationsLoaded',
-    videoData: Object.fromEntries(videoData.map(({ id, title }) => [id, title]))
+    videoData
   });
   console.log("Evaluation results: ", evaluationResults);
   videoRenderers.forEach((renderer) => {
     const id = renderer.getAttribute('data-video-id');
-    if (id && id in evaluationResults) {
+    const result = evaluationResults.videos.find((video: any) => video.id === id);
+
+    renderer.style.border = '';
+    const content = renderer.querySelector('#content');
+    if (content instanceof HTMLElement) {
+      content.style.opacity = '';
+    }
+    const dismissible = renderer.querySelector('#dismissible');
+    if (dismissible instanceof HTMLElement) {
+      dismissible.style.opacity = '';
+    }
+    if (result) {
       renderer.style.pointerEvents = 'auto';
-      renderer.style.opacity = '1';
-      renderer.style.display = ''; // Reset display to default
+      renderer.style.filter = ''; // Reset filter to default
     } else {
       renderer.style.pointerEvents = 'none';
-      renderer.style.display = 'none';
+      renderer.style.filter = 'blur(10px) grayscale(1)';
     }
   });
   return true;
@@ -247,8 +297,6 @@ async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
 
 async function analyzeRecommendation() {
   const secondaryElement = document.querySelector('ytd-watch-flexy #secondary') as HTMLElement;
-  hideArea('#secondary-inner');
-  addAnalyzingSpinner(secondaryElement, 'analyzing-related-videos');
 
   let lastAnalyzedCount = 0;
 
@@ -264,33 +312,25 @@ async function analyzeRecommendation() {
 
       const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
 
-
-      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+      if (newVideos.length > 0) {
         newVideos.forEach((renderer, index) => {
           renderer.style.pointerEvents = 'none';
-          renderer.style.opacity = '0';
+          renderer.style.border = '1px dashed gray';
+          renderer.style.borderRadius = '10px';
+          const content = renderer.querySelector('#dismissible');
+          if (content instanceof HTMLElement) {
+            content.style.opacity = '0';
+          }
         });
         if (newVideos[0]) {
           const spinnerElement = document.createElement('div');
           spinnerElement.style.position = 'relative';
           newVideos[0].parentNode?.insertBefore(spinnerElement, newVideos[0]);
-          addAnalyzingSpinner(spinnerElement, 'analyzing-new-related-video');
+          addAnalyzingSpinner('analyzing-new-related-video');
         }
-      }
-
-      if (newVideos.length > 0) {
         await evaluateAndFilterVideos(newVideos);
-      }
-
-      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
         removeAnalyzingSpinner('analyzing-new-related-video');
-      } else {
-
-        showArea('#secondary-inner');
-        removeAnalyzingSpinner('analyzing-related-videos');
       }
-
-
 
       lastAnalyzedCount = videoRecommendations.length;
 
@@ -303,16 +343,19 @@ async function analyzeRecommendation() {
     }
   });
 
-
-  document.addEventListener('yt-navigate-start', () => {
-    observer.disconnect();
-  });
-
   if (secondaryElement) {
     observer.observe(secondaryElement, {
       childList: true,
       subtree: true,
     });
+
+    // Clean up the observer when navigating away
+    const cleanup = () => {
+      observer.disconnect();
+      document.removeEventListener('yt-navigate-start', cleanup);
+    };
+
+    document.addEventListener('yt-navigate-start', cleanup);
   }
 }
 
@@ -323,38 +366,28 @@ async function analyzeHome(filterEnabled: boolean) {
     let videoCount = 0;
     let lastAnalyzedCount = 0;
 
-    hideArea('ytd-rich-grid-renderer');
-    addAnalyzingSpinner(primaryElement, 'analyzing-home-video');
-
     const observer = new MutationObserver(async (mutations, obs) => {
       const videoRecommendations = document.querySelectorAll('ytd-rich-item-renderer') as NodeListOf<HTMLElement>;
-
       if (videoCount === videoRecommendations.length) {
         obs.disconnect();
 
         const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
-
-
-        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+        if (newVideos.length > 0) {
           newVideos.forEach((renderer, index) => {
             renderer.style.pointerEvents = 'none';
-            renderer.style.opacity = '0';
+            renderer.style.border = '1px dashed gray';
+            renderer.style.borderRadius = '10px';
+            const content = renderer.querySelector('#content');
+            if (content instanceof HTMLElement) {
+              content.style.opacity = '0';
+            }
           });
-          if (newVideos[0].parentElement?.parentElement) {
-            newVideos[0].parentElement.parentElement.style.position = 'relative';
-            addAnalyzingSpinner(newVideos[0].parentElement.parentElement, 'analyzing-new-home-video');
-          }
-        }
-
-        if (newVideos.length > 0) {
+          addAnalyzingSpinner('analyzing-new-home-video');
           await evaluateAndFilterVideos(newVideos);
-        }
 
-        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
-          removeAnalyzingSpinner('analyzing-new-home-video');
-        } else {
-          showArea('ytd-rich-grid-renderer');
-          removeAnalyzingSpinner('analyzing-home-video');
+          if (newVideos[0].parentElement?.parentElement) {
+            removeAnalyzingSpinner('analyzing-new-home-video');
+          }
         }
 
         lastAnalyzedCount = videoRecommendations.length;
@@ -369,12 +402,6 @@ async function analyzeHome(filterEnabled: boolean) {
       } else {
         videoCount = videoRecommendations.length;
       }
-
-    });
-
-
-    document.addEventListener('yt-navigate-start', () => {
-      observer.disconnect();
     });
 
     if (primaryElement) {
@@ -383,27 +410,30 @@ async function analyzeHome(filterEnabled: boolean) {
         subtree: true,
       });
     }
+
+    // Clean up the observer when navigating away
+    const cleanup = () => {
+      observer.disconnect();
+      document.removeEventListener('yt-navigate-start', cleanup);
+    };
+
+    document.addEventListener('yt-navigate-start', cleanup);
   }
 }
 
-
 function hideShorts() {
-  const shortsObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'childList') {
-        mutation.addedNodes.forEach((node) => {
-          if (node instanceof HTMLElement) {
-            if ((node.tagName === 'YTD-RICH-SHELF-RENDERER' || node.tagName === 'YTD-REEL-SHELF-RENDERER')) {
-              node.style.display = 'none';
-            }
-          }
-        });
+  const existingStyle = document.getElementById('hide-shorts-style');
+  if (!existingStyle) {
+    const style = document.createElement('style');
+    style.id = 'hide-shorts-style';
+    style.innerHTML = `
+      ytd-rich-shelf-renderer, ytd-reel-shelf-renderer {
+          display: none !important;
       }
-    });
-  });
-
-  shortsObserver.observe(document.body, { childList: true, subtree: true });
-}
+    `;
+    document.head.appendChild(style);
+  }
+};
 
 
 document.addEventListener('yt-page-data-updated', async () => {
@@ -414,28 +444,53 @@ document.addEventListener('yt-page-data-updated', async () => {
     'video-warning',
     'title-eval',
   ]);
-  const { blockerEnabled, videoEvalEnabled, filterEnabled, hideShortsEnabled } = await savedSettingsStorage.get();
+  const { blockerEnabled,
+    videoEvalEnabled,
+    filterEnabled,
+    hideShortsEnabled
+  } = await savedSettingsStorage.get();
+
+  const { helpful, harmful } = await savedGoalsStorage.get();
 
   if (hideShortsEnabled) {
     hideShorts();
   }
-  if (window.location.pathname.includes('/watch')) {
-    if (blockerEnabled || videoEvalEnabled) {
-      analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
+
+  if (helpful || harmful) {
+    if (window.location.pathname.includes('/watch')) {
+      if (blockerEnabled || videoEvalEnabled) {
+        analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
+      } else {
+        const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
+        shouldPauseVideo = false;
+        if (videoPlayer) {
+          videoPlayer.play();
+        }
+      }
+      if (filterEnabled) {
+        analyzeRecommendation();
+      }
     }
-    if (filterEnabled) {
-      analyzeRecommendation();
+    if (window.location.href === 'https://www.youtube.com/' || window.location.href.includes('youtube.com/feed/subscriptions')) {
+      const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
+      shouldPauseVideo = false;
+      if (videoPlayer) {
+        videoPlayer.play();
+      }
+      if (filterEnabled) {
+        analyzeHome(filterEnabled);
+      }
     }
-  } else if (window.location.href === 'https://www.youtube.com/' || window.location.href.includes('youtube.com/feed/subscriptions')) {
-    if (filterEnabled) {
-      analyzeHome(filterEnabled);
-    }
-  } else {
+  } else if (!helpful && !harmful) {
+    await chrome.runtime.sendMessage({
+      type: 'showGoalsBadge',
+    });
+  }
+  else {
     const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
     shouldPauseVideo = false;
     if (videoPlayer) {
       videoPlayer.play();
-      return; // Exit if not on a watch page
     }
   }
 });

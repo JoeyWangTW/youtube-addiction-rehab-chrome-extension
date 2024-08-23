@@ -21,10 +21,11 @@ interface ToggleSwitchProps {
   label: string;
   description?: string;
   disabled?: boolean;
+  children?: React.ReactNode;
 }
 
-const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, label, description, disabled = false }) => (
-  <div className="flex items-center mb-4">
+const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, label, description, disabled = false, children }) => (
+  <div className="flex flex-col mb-4">
     <label htmlFor={id} className={`flex items-start ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
       <div className="relative">
         <input
@@ -41,6 +42,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, labe
       <div className='ml-3 flex flex-col'>
         <div className='text-base text-white'>{label}</div>
         {description && <div className='text-gray-500 text-sm max-w-[300px]'>{description}</div>}
+        {checked && children && <div className='max-w-[300px]'>{children}</div>}
       </div>
     </label>
   </div>
@@ -70,6 +72,18 @@ const SettingsTab = () => {
       ...prevSettings,
       [key]: value,
     }));
+  };
+
+  const [goalKeeperMode, setGoalKeeperMode] = useState<'block' | 'evaluate'>(
+    settings.blockerEnabled ? 'block' : 'evaluate'
+  );
+
+  const handleGoalKeeperChange = (enabled: boolean) => {
+    handleChange('blockerEnabled', enabled);
+    handleChange('videoEvalEnabled', enabled);
+    if (enabled && goalKeeperMode === 'evaluate') {
+      setGoalKeeperMode('block');
+    }
   };
 
   return (
@@ -128,6 +142,7 @@ const SettingsTab = () => {
                 <>
                   <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                   <option value="gpt-4o">GPT-4o</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini</option>
                 </>
               )}
               {settings.anthropicApiKey && (
@@ -152,41 +167,62 @@ const SettingsTab = () => {
         <div>
           <h2 className="text-2xl font-bold mb-4">Smart Features</h2>
           <ToggleSwitch
+            id="ai-goal-keeper"
+            checked={settings.blockerEnabled || settings.videoEvalEnabled}
+            onChange={() => handleGoalKeeperChange(!(settings.blockerEnabled || settings.videoEvalEnabled))}
+            label="AI Goal Keeper"
+          >
+            <div>
+              <div className="flex space-x-2 mt-2">
+                <button
+                  className={`py-2 px-4 rounded-full ${goalKeeperMode === 'block'
+                    ? 'bg-gray-500 text-white'
+                    : 'border border-gray-300 text-gray-300'
+                    }`}
+                  onClick={() => {
+                    setGoalKeeperMode('block');
+                    handleChange('blockerEnabled', true);
+                    handleChange('videoEvalEnabled', true);
+                  }}
+                >
+                  Block Videos
+                </button>
+                <button
+                  className={`py-2 px-4 rounded-full ${goalKeeperMode === 'evaluate'
+                    ? 'bg-gray-500 text-white'
+                    : 'border border-gray-300 text-gray-300'
+                    }`}
+                  onClick={() => {
+                    setGoalKeeperMode('evaluate');
+                    handleChange('blockerEnabled', false);
+                    handleChange('videoEvalEnabled', true);
+                  }}
+                >
+                  Evaluation Only
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                <span>Evaluate videos based on your goals. <br /> </span>
+                {goalKeeperMode === 'block'
+                  ? "Block videos that are not relevant to your goals."
+                  : "Only evaluate videos without blocking them. This will make the AI Goal Keeper more lenient."}
+              </p>
+            </div>
+          </ToggleSwitch>
+
+          <ToggleSwitch
             id="ai-filter"
             checked={settings.filterEnabled}
             onChange={() => handleChange('filterEnabled', !settings.filterEnabled)}
-            label="AI Filter"
-            description="Filter recommendations on the home page and related videos on the side bar."
+            label="AI Focus Filter"
+            description="Only show recommendations that are relevant to your goals. 
+            Works on the home page and related videos on the side bar."
           />
-
-          <ToggleSwitch
-            id="ai-blocker"
-            checked={settings.blockerEnabled}
-            onChange={() => {
-              handleChange('blockerEnabled', !settings.blockerEnabled);
-              if (!settings.blockerEnabled) {
-                handleChange('videoEvalEnabled', true);
-              }
-            }}
-            label="AI Blocker"
-            description="Block videos that are not relevant to your goals."
-          />
-
-          <ToggleSwitch
-            id="videoEval"
-            checked={settings.videoEvalEnabled}
-            onChange={() => handleChange('videoEvalEnabled', !settings.videoEvalEnabled)}
-            label="Video Evaluation"
-            disabled={settings.blockerEnabled}
-            description="Evaluate videos to determine if they are relevant to your goals. 
-            (Default to enabled if AI Blocker is enabled.)"
-          />
-
           <ToggleSwitch
             id="hideShorts"
             checked={settings.hideShortsEnabled}
             onChange={() => handleChange('hideShortsEnabled', !settings.hideShortsEnabled)}
-            label="Hide Shorts"
+            label="No Shorts!"
             description="Hide any shorts on the page."
           />
         </div>
