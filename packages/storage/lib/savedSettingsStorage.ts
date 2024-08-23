@@ -3,12 +3,13 @@ import { BaseStorage, createStorage, StorageType } from './base';
 type UserSettings = {
     openAIApiKey: string;
     anthropicApiKey: string;
+    groqApiKey: string;
     blockerEnabled: boolean;
     videoEvalEnabled: boolean;
     filterEnabled: boolean;
     hideShortsEnabled: boolean;
     llmModel: string;
-    aiProvider: 'openai' | 'anthropic';
+    aiProvider: 'openai' | 'anthropic' | 'groq';
     apiErrorStatus: {
         type: 'AUTH' | 'RATE_LIMIT' | null;
         timestamp: number | null;
@@ -20,6 +21,7 @@ type SettingsStorage = BaseStorage<UserSettings>;
 const defaultSettings: UserSettings = {
     openAIApiKey: '',
     anthropicApiKey: '',
+    groqApiKey: '',
     blockerEnabled: false,
     videoEvalEnabled: true,
     filterEnabled: false,

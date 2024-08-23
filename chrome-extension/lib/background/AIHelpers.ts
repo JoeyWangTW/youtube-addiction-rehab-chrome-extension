@@ -14,12 +14,14 @@ function formatPrompt(systemPrompt: string, prompt: string) {
 
 export async function fetchChatCompletion(systemPrompt: string, prompt: string): Promise<string> {
     try {
-        const { llmModel, aiProvider, openAIApiKey, anthropicApiKey } = await savedSettingsStorage.get();
+        const { llmModel, aiProvider, openAIApiKey, anthropicApiKey, groqApiKey } = await savedSettingsStorage.get();
 
         if (aiProvider === 'openai') {
             return fetchOpenAIChatCompletion(openAIApiKey, llmModel, formatPrompt(systemPrompt, prompt));
         } else if (aiProvider === 'anthropic') {
             return fetchAnthropicChatCompletion(anthropicApiKey, llmModel, systemPrompt, prompt);
+        } else if (aiProvider === 'groq') {
+            return fetchGroqChatCompletion(groqApiKey, llmModel, formatPrompt(systemPrompt, prompt));
         } else {
             throw new Error('Invalid AI provider');
         }
@@ -99,6 +101,50 @@ async function fetchAnthropicChatCompletion(apiKey: string, model: string, syste
                 return response.data.content[0].text;
             } else {
                 return 'No response from Anthropic.';
+            }
+        })
+        .catch(error => {
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 401) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'AUTH', timestamp: Date.now() }
+                    }));
+                    throw new Error('Authentication failed. Please check your API key.');
+                } else if (error.response?.status === 429) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'RATE_LIMIT', timestamp: Date.now() }
+                    }));
+                    throw new Error('Rate limit exceeded. Please try again later.');
+                }
+            }
+            throw error;
+        });
+}
+
+async function fetchGroqChatCompletion(apiKey: string, model: string, messages: any[]): Promise<string> {
+    const url = 'https://api.groq.com/openai/v1/chat/completions';
+    const data = {
+        model: model,
+        messages: messages,
+    };
+    const headers = {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+    };
+
+    return axios.post<ChatCompletionResponse>(url, data, { headers })
+        .then(response => {
+            if (response.data.choices && response.data.choices.length > 0) {
+                // Reset error status on successful request
+                savedSettingsStorage.set(prev => ({
+                    ...prev,
+                    apiErrorStatus: { type: null, timestamp: null }
+                }));
+                return response.data.choices[0].message.content;
+            } else {
+                return 'No response from Groq.';
             }
         })
         .catch(error => {

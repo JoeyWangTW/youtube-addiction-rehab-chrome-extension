@@ -11,7 +11,7 @@ type UserSettings = {
   filterEnabled: boolean;
   hideShortsEnabled: boolean;
   llmModel: string;
-  aiProvider: 'openai' | 'anthropic';
+  aiProvider: 'openai' | 'anthropic' | 'groq';
 };
 
 interface ToggleSwitchProps {
@@ -120,6 +120,21 @@ const SettingsTab = () => {
             <div className='text-gray-500'>API keys will only be stored on your device.</div>
           </div>
 
+
+          <div className="mb-4">
+            <label htmlFor="api-key" className="block text-sm font-medium text-white">
+              Groq API Key
+            </label>
+            <input
+              id="oepn-api-key"
+              type="password"
+              className="mt-1 p-2 block w-96 text-black border-2 rounded-md border-gray-300 shadow-sm focus:border-gray-700 focus:outline-none"
+              value={settings.groqApiKey}
+              onChange={e => handleChange('groqApiKey', e.target.value)}
+            />
+            <div className='text-gray-500'>API keys will only be stored on your device.</div>
+          </div>
+
           <div className='mb-4'>
             <label htmlFor="model-select" className="block text-sm font-medium text-white">
               Choose a model:
@@ -136,6 +151,8 @@ const SettingsTab = () => {
                   handleChange('aiProvider', 'openai');
                 } else if (selectedModel.startsWith('claude')) {
                   handleChange('aiProvider', 'anthropic');
+                } else if (selectedModel.startsWith('llama')) {
+                  handleChange('aiProvider', 'groq');
                 }
               }}>
               {settings.openAIApiKey && (
@@ -152,14 +169,21 @@ const SettingsTab = () => {
                   <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
                 </>
               )}
+              {settings.groqApiKey && (
+                <>
+                  <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+                  <option value="llama-3.1-70b-versatile">Llama 3.1 70B</option>
+                </>
+              )}
             </select>
           </div>
 
-          <div className='flex flex-row items-center mb-4 p-2 w-96 border border-gray-600 rounded-md'>
+          <div className='flex flex-row items-center mb-4 p-2 w-128 border border-gray-600 rounded-md w-96'>
             <div className='mr-2'>⚡</div>
             <p className='text-sm text-gray-300'>
-              Recommend using <strong>Anthropic - Claude 3 Haiku </strong>
-              for good results, cost-efficiency, and quick response times.
+              <strong>Recommend starting with smaller models such as Claude 3 Haiku, GPT-4o mini, LLaMA 3.1 70B.</strong>
+              <br />They are cheap and fast, with good enough results.
+              <br />If you want super low latency, go with Groq LLaMA 3.1 70B.
             </p>
           </div>
         </div>
