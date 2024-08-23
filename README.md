@@ -7,6 +7,9 @@
 ![](https://badges.aleen42.com/src/vitejs.svg)
 ![GitHub action badge](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite/actions/workflows/build-zip.yml/badge.svg)
 
+<a href="https://chromewebstore.google.com/detail/youtube-addiction-rehab/egjcbfpcghillmioipjehaikmekemilk"><img src="demo/avaliable_in_chrome_web_store.png" alt="Get Youtube Addiciton Rehab for Chromium" width="300px"></a>
+
+<img src="demo/hero.jpeg" alt="hero" width="100%" />
 </div>
 
 ## Table of Contents
@@ -24,13 +27,13 @@
 YouTube Addiction Rehab is your digital ally against compulsive video watching on YouTube. Utilizing LLM AI technology, this extension curates your viewing experience based on your personal preferences and goals. It helps establish boundaries, promote healthier viewing habits, and minimize distractions from irrelevant content. Gain control and enhance your digital wellbeing with YouTube Addiction Rehab.
 
 > [!NOTE] 
-> Join [waitlist](https://forms.gle/93Ew9HLtuBnAUuqF8) to get early access to the packaged version on chrome web store (no pre-requisite intallation and API key needed).
-
+> Packaged version is available on [Chrome Web Store](https://chromewebstore.google.com/detail/youtube-addiction-rehab/egjcbfpcghillmioipjehaikmekemilk).
+> Checkout more info on [YouTubeAddiction.Rehab](https://youtubeaddiction.rehab).
 ## Features <a name="features"></a>
 
-- AI Content Evaluation: Evaluates the relevance of the recommended content based on your preferences.
-- AI Content Filtering: Automatically filters out non-essential recommended content based on your preferences.
-- AI Video Blocker: Automatically blocks distracting videos based on your preferences.
+- AI Focus Filter: Automatically filters out non-essential recommended content based on your preferences.
+- AI Smart Blocker: Automatically blocks distracting videos based on your preferences.
+- Hide shorts: Automatically hides shorts from your recommended feed.
 
 ## Prerequisites <a name="prerequisites"></a>
 
