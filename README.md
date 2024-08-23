@@ -16,6 +16,7 @@
 - [Install](#install)
   - [Chrome](#chrome)
   - [Firefox](#firefox)
+  - [Safari](#safari)
 - [Notes](#notes)
 - [Reference](#reference)
 
@@ -62,6 +63,9 @@ YouTube Addiction Rehab is your digital ally against compulsive video watching o
 4. Select - `manifest.json` from `dist` folder at root
 
 <i>Remember in firefox you add plugin in temporary mode, that's mean it's disappear after close browser, you must do it again, on next launch.</i>
+
+### For Safari: <a name="safari"></a>
+  Follow this [guide](https://developer.apple.com/documentation/safariservices/converting-a-web-extension-for-safari) to convert this extension to Safari.
 
 ## Notes 
 
