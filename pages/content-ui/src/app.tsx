@@ -69,12 +69,11 @@ export const TitleEvalResult: React.FC<TitleEvalResultProps & { onUnblock?: () =
 
 export const Analyzing: React.FC = () => {
   return (
-    <div className="w-full h-[500px] flex justify-center items-center">
+    <div className="w-300 h-100 flex justify-center items-center">
       <div className="text-center text-white">
-        <div className="animate-bounce text-7xl">🤖</div>
-        <div className="mt-8 text-7xl font-mono">Analyzing Content...</div>
+        <div className="animate-bounce text-4xl">🤖</div>
+        <div className="mt-2 text-3xl font-mono">Analyzing Content...</div>
       </div>
     </div>
   );
 };
-

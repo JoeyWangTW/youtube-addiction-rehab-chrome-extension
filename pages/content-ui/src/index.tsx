@@ -36,17 +36,55 @@ function addCoveredComponent(node: HTMLElement, id: string, component: ReactElem
   createRoot(rootIntoShadow).render(component);
 }
 
-function addAnalyzingSpinner(node: HTMLElement, id: string) {
-  addCoveredComponent(node, id, <Analyzing />);
+function addAnalyzingSpinner(id: string) {
+  const root = document.createElement('div');
+  root.id = id;
+
+  document.body.appendChild(root);
+
+  const rootIntoShadow = document.createElement('div');
+  rootIntoShadow.id = 'shadow-root';
+
+  root.style.position = 'fixed';
+  root.style.top = '-100px';
+  root.style.left = '50%';
+  root.style.transform = 'translateX(-50%)';
+  root.style.zIndex = '9999';
+  root.style.transition = 'top 0.3s ease-out';
+
+  rootIntoShadow.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  rootIntoShadow.style.borderRadius = '20px';
+  rootIntoShadow.style.padding = '16px';
+  rootIntoShadow.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+
+  const shadowRoot = root.attachShadow({ mode: 'open' });
+  shadowRoot.appendChild(rootIntoShadow);
+
+  const styleElement = document.createElement('style');
+  styleElement.innerHTML = tailwindcssOutput;
+  shadowRoot.appendChild(styleElement);
+
+  createRoot(rootIntoShadow).render(<Analyzing />);
+
+  // Trigger the animation after a short delay
+  setTimeout(() => {
+    root.style.top = '60px';
+  }, 30);
 }
 
 function removeAnalyzingSpinner(id: string) {
   const root = document.getElementById(id);
 
   if (root) {
-    root.parentNode?.removeChild(root);
+    root.style.top = '-100px';
+    root.style.opacity = '0';
+    root.style.transition = 'top 0.3s ease-out, opacity 0.3s ease-out';
+    setTimeout(() => {
+      root.parentNode?.removeChild(root);
+    }, 300); // Wait for the transition to complete before removing
   }
 }
+
 
 interface EvaluationResult {
   evaluation_rating: string;
@@ -164,7 +202,7 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
   }
   if (blockerEnabled) {
     hideArea('#primary-inner');
-    addAnalyzingSpinner(primaryElement, 'analyzing-video');
+    addAnalyzingSpinner('analyzing-video');
     shouldPauseVideo = true;
   } else {
     const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
@@ -248,7 +286,7 @@ async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
 async function analyzeRecommendation() {
   const secondaryElement = document.querySelector('ytd-watch-flexy #secondary') as HTMLElement;
   hideArea('#secondary-inner');
-  addAnalyzingSpinner(secondaryElement, 'analyzing-related-videos');
+  addAnalyzingSpinner('analyzing-related-videos');
 
   let lastAnalyzedCount = 0;
 
@@ -274,7 +312,7 @@ async function analyzeRecommendation() {
           const spinnerElement = document.createElement('div');
           spinnerElement.style.position = 'relative';
           newVideos[0].parentNode?.insertBefore(spinnerElement, newVideos[0]);
-          addAnalyzingSpinner(spinnerElement, 'analyzing-new-related-video');
+          addAnalyzingSpinner('analyzing-new-related-video');
         }
       }
 
@@ -324,7 +362,7 @@ async function analyzeHome(filterEnabled: boolean) {
     let lastAnalyzedCount = 0;
 
     hideArea('ytd-rich-grid-renderer');
-    addAnalyzingSpinner(primaryElement, 'analyzing-home-video');
+    addAnalyzingSpinner('analyzing-home-video');
 
     const observer = new MutationObserver(async (mutations, obs) => {
       const videoRecommendations = document.querySelectorAll('ytd-rich-item-renderer') as NodeListOf<HTMLElement>;
@@ -342,7 +380,7 @@ async function analyzeHome(filterEnabled: boolean) {
           });
           if (newVideos[0].parentElement?.parentElement) {
             newVideos[0].parentElement.parentElement.style.position = 'relative';
-            addAnalyzingSpinner(newVideos[0].parentElement.parentElement, 'analyzing-new-home-video');
+            addAnalyzingSpinner('analyzing-new-home-video');
           }
         }
 
