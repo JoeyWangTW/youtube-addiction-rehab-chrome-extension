@@ -8,6 +8,7 @@
 ![GitHub action badge](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite/actions/workflows/build-zip.yml/badge.svg)
 
 </div>
+<img src="demo/hero.jpeg" alt="hero" width="100%" />
 
 ## Table of Contents
 
