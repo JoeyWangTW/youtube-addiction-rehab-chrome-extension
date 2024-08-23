@@ -256,7 +256,7 @@ async function analyzeCurrentVideo(blockerEnabled: boolean, videoEvalEnabled: bo
 }
 
 async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
-  const videoData = videoRenderers.map((renderer, index) => {
+  const videos = videoRenderers.map((renderer, index) => {
     const titleElement = renderer.querySelector('#video-title');
     const title = titleElement ? titleElement.textContent?.trim() || '' : '';
     const id = `video-${index}-${Date.now()}`; // Create a unique ID
@@ -264,20 +264,32 @@ async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
     return { id, title };
   });
 
+  const videoData = { videos };
+
   const evaluationResults = await chrome.runtime.sendMessage({
     type: 'recommendationsLoaded',
-    videoData: Object.fromEntries(videoData.map(({ id, title }) => [id, title]))
+    videoData
   });
   console.log("Evaluation results: ", evaluationResults);
   videoRenderers.forEach((renderer) => {
     const id = renderer.getAttribute('data-video-id');
-    if (id && id in evaluationResults) {
+    const result = evaluationResults.videos.find((video: any) => video.id === id);
+
+    renderer.style.border = '';
+    const content = renderer.querySelector('#content');
+    if (content instanceof HTMLElement) {
+      content.style.opacity = '';
+    }
+    const dismissible = renderer.querySelector('#dismissible');
+    if (dismissible instanceof HTMLElement) {
+      dismissible.style.opacity = '';
+    }
+    if (result) {
       renderer.style.pointerEvents = 'auto';
-      renderer.style.opacity = '1';
-      renderer.style.display = ''; // Reset display to default
+      renderer.style.filter = ''; // Reset filter to default
     } else {
       renderer.style.pointerEvents = 'none';
-      renderer.style.display = 'none';
+      renderer.style.filter = 'blur(10px) grayscale(1)';
     }
   });
   return true;
@@ -285,8 +297,6 @@ async function evaluateAndFilterVideos(videoRenderers: HTMLElement[]) {
 
 async function analyzeRecommendation() {
   const secondaryElement = document.querySelector('ytd-watch-flexy #secondary') as HTMLElement;
-  hideArea('#secondary-inner');
-  addAnalyzingSpinner('analyzing-related-videos');
 
   let lastAnalyzedCount = 0;
 
@@ -302,11 +312,15 @@ async function analyzeRecommendation() {
 
       const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
 
-
-      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+      if (newVideos.length > 0) {
         newVideos.forEach((renderer, index) => {
           renderer.style.pointerEvents = 'none';
-          renderer.style.opacity = '0';
+          renderer.style.border = '1px dashed gray';
+          renderer.style.borderRadius = '10px';
+          const content = renderer.querySelector('#dismissible');
+          if (content instanceof HTMLElement) {
+            content.style.opacity = '0';
+          }
         });
         if (newVideos[0]) {
           const spinnerElement = document.createElement('div');
@@ -314,21 +328,9 @@ async function analyzeRecommendation() {
           newVideos[0].parentNode?.insertBefore(spinnerElement, newVideos[0]);
           addAnalyzingSpinner('analyzing-new-related-video');
         }
-      }
-
-      if (newVideos.length > 0) {
         await evaluateAndFilterVideos(newVideos);
-      }
-
-      if (lastAnalyzedCount > 0 && newVideos.length > 0) {
         removeAnalyzingSpinner('analyzing-new-related-video');
-      } else {
-
-        showArea('#secondary-inner');
-        removeAnalyzingSpinner('analyzing-related-videos');
       }
-
-
 
       lastAnalyzedCount = videoRecommendations.length;
 
@@ -341,16 +343,19 @@ async function analyzeRecommendation() {
     }
   });
 
-
-  document.addEventListener('yt-navigate-start', () => {
-    observer.disconnect();
-  });
-
   if (secondaryElement) {
     observer.observe(secondaryElement, {
       childList: true,
       subtree: true,
     });
+
+    // Clean up the observer when navigating away
+    const cleanup = () => {
+      observer.disconnect();
+      document.removeEventListener('yt-navigate-start', cleanup);
+    };
+
+    document.addEventListener('yt-navigate-start', cleanup);
   }
 }
 
@@ -361,38 +366,28 @@ async function analyzeHome(filterEnabled: boolean) {
     let videoCount = 0;
     let lastAnalyzedCount = 0;
 
-    hideArea('ytd-rich-grid-renderer');
-    addAnalyzingSpinner('analyzing-home-video');
-
     const observer = new MutationObserver(async (mutations, obs) => {
       const videoRecommendations = document.querySelectorAll('ytd-rich-item-renderer') as NodeListOf<HTMLElement>;
-
       if (videoCount === videoRecommendations.length) {
         obs.disconnect();
 
         const newVideos = Array.from(videoRecommendations).slice(lastAnalyzedCount);
-
-
-        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
+        if (newVideos.length > 0) {
           newVideos.forEach((renderer, index) => {
             renderer.style.pointerEvents = 'none';
-            renderer.style.opacity = '0';
+            renderer.style.border = '1px dashed gray';
+            renderer.style.borderRadius = '10px';
+            const content = renderer.querySelector('#content');
+            if (content instanceof HTMLElement) {
+              content.style.opacity = '0';
+            }
           });
-          if (newVideos[0].parentElement?.parentElement) {
-            newVideos[0].parentElement.parentElement.style.position = 'relative';
-            addAnalyzingSpinner('analyzing-new-home-video');
-          }
-        }
-
-        if (newVideos.length > 0) {
+          addAnalyzingSpinner('analyzing-new-home-video');
           await evaluateAndFilterVideos(newVideos);
-        }
 
-        if (lastAnalyzedCount > 0 && newVideos.length > 0) {
-          removeAnalyzingSpinner('analyzing-new-home-video');
-        } else {
-          showArea('ytd-rich-grid-renderer');
-          removeAnalyzingSpinner('analyzing-home-video');
+          if (newVideos[0].parentElement?.parentElement) {
+            removeAnalyzingSpinner('analyzing-new-home-video');
+          }
         }
 
         lastAnalyzedCount = videoRecommendations.length;
@@ -407,12 +402,6 @@ async function analyzeHome(filterEnabled: boolean) {
       } else {
         videoCount = videoRecommendations.length;
       }
-
-    });
-
-
-    document.addEventListener('yt-navigate-start', () => {
-      observer.disconnect();
     });
 
     if (primaryElement) {
@@ -421,6 +410,14 @@ async function analyzeHome(filterEnabled: boolean) {
         subtree: true,
       });
     }
+
+    // Clean up the observer when navigating away
+    const cleanup = () => {
+      observer.disconnect();
+      document.removeEventListener('yt-navigate-start', cleanup);
+    };
+
+    document.addEventListener('yt-navigate-start', cleanup);
   }
 }
 
