@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { TitleEvalResult, Analyzing } from '@src/app';
-import { savedSettingsStorage } from '@chrome-extension-boilerplate/storage';
+import { savedSettingsStorage, savedGoalsStorage } from '@chrome-extension-boilerplate/storage';
 // eslint-disable-next-line
 // @ts-ignore
 import tailwindcssOutput from '@src/tailwind-output.css?inline';
@@ -415,26 +415,47 @@ document.addEventListener('yt-page-data-updated', async () => {
     hideShortsEnabled
   } = await savedSettingsStorage.get();
 
+  const { helpful, harmful } = await savedGoalsStorage.get();
+
   if (hideShortsEnabled) {
     hideShorts();
   }
-  if (window.location.pathname.includes('/watch')) {
-    if (blockerEnabled || videoEvalEnabled) {
-      analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
+
+  if (helpful || harmful) {
+    if (window.location.pathname.includes('/watch')) {
+      if (blockerEnabled || videoEvalEnabled) {
+        analyzeCurrentVideo(blockerEnabled, videoEvalEnabled);
+      } else {
+        const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
+        shouldPauseVideo = false;
+        if (videoPlayer) {
+          videoPlayer.play();
+        }
+      }
+      if (filterEnabled) {
+        analyzeRecommendation();
+      }
     }
-    if (filterEnabled) {
-      analyzeRecommendation();
+    if (window.location.href === 'https://www.youtube.com/' || window.location.href.includes('youtube.com/feed/subscriptions')) {
+      const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
+      shouldPauseVideo = false;
+      if (videoPlayer) {
+        videoPlayer.play();
+      }
+      if (filterEnabled) {
+        analyzeHome(filterEnabled);
+      }
     }
-  } else if (window.location.href === 'https://www.youtube.com/' || window.location.href.includes('youtube.com/feed/subscriptions')) {
-    if (filterEnabled) {
-      analyzeHome(filterEnabled);
-    }
-  } else {
+  } else if (!helpful && !harmful) {
+    await chrome.runtime.sendMessage({
+      type: 'showGoalsBadge',
+    });
+  }
+  else {
     const videoPlayer = document.querySelector('video.html5-main-video') as HTMLVideoElement;
     shouldPauseVideo = false;
     if (videoPlayer) {
       videoPlayer.play();
-      return; // Exit if not on a watch page
     }
   }
 });
