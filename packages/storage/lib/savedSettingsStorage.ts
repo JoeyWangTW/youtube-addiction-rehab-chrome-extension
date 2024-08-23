@@ -24,8 +24,8 @@ const defaultSettings: UserSettings = {
     videoEvalEnabled: true,
     filterEnabled: false,
     hideShortsEnabled: false,
-    llmModel: 'claude-3-haiku-20240307',
-    aiProvider: 'anthropic',
+    llmModel: 'gpt-4o-mini',
+    aiProvider: 'openai',
     apiErrorStatus: {
         type: null,
         timestamp: null,

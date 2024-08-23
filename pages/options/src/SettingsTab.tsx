@@ -142,6 +142,7 @@ const SettingsTab = () => {
                 <>
                   <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                   <option value="gpt-4o">GPT-4o</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini</option>
                 </>
               )}
               {settings.anthropicApiKey && (
