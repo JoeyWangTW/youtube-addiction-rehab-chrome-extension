@@ -5,6 +5,10 @@ interface ChatCompletionResponse {
     choices: { message: { content: string } }[];
 }
 
+interface LocalChatCompletionResponse {
+    message: { content: string };
+}
+
 function formatPrompt(systemPrompt: string, prompt: string) {
     return [
         { role: 'system', content: systemPrompt },
@@ -14,7 +18,7 @@ function formatPrompt(systemPrompt: string, prompt: string) {
 
 export async function fetchChatCompletion(systemPrompt: string, prompt: string): Promise<string> {
     try {
-        const { llmModel, aiProvider, openAIApiKey, anthropicApiKey, groqApiKey } = await savedSettingsStorage.get();
+        const { llmModel, aiProvider, openAIApiKey, anthropicApiKey, groqApiKey, localModelEndpoint, localModelName } = await savedSettingsStorage.get();
 
         if (aiProvider === 'openai') {
             return fetchOpenAIChatCompletion(openAIApiKey, llmModel, formatPrompt(systemPrompt, prompt));
@@ -22,6 +26,8 @@ export async function fetchChatCompletion(systemPrompt: string, prompt: string):
             return fetchAnthropicChatCompletion(anthropicApiKey, llmModel, systemPrompt, prompt);
         } else if (aiProvider === 'groq') {
             return fetchGroqChatCompletion(groqApiKey, llmModel, formatPrompt(systemPrompt, prompt));
+        } else if (aiProvider === 'local') {
+            return fetchLocalChatCompletion(localModelEndpoint, localModelName, formatPrompt(systemPrompt, prompt));
         } else {
             throw new Error('Invalid AI provider');
         }
@@ -155,6 +161,50 @@ async function fetchGroqChatCompletion(apiKey: string, model: string, messages: 
                         apiErrorStatus: { type: 'AUTH', timestamp: Date.now() }
                     }));
                     throw new Error('Authentication failed. Please check your API key.');
+                } else if (error.response?.status === 429) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'RATE_LIMIT', timestamp: Date.now() }
+                    }));
+                    throw new Error('Rate limit exceeded. Please try again later.');
+                }
+            }
+            throw error;
+        });
+}
+
+async function fetchLocalChatCompletion(localModelPort: string, localModelName: string, messages: any[]): Promise<string> {
+    const url = `${localModelPort}`;
+    const data = {
+        model: localModelName,
+        messages: messages,
+        stream: false
+    };
+    return axios.post<LocalChatCompletionResponse>(url, data, {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(response => {
+            if (response.data.message && response.data.message.content) {
+                // Reset error status on successful request
+                savedSettingsStorage.set(prev => ({
+                    ...prev,
+                    apiErrorStatus: { type: null, timestamp: null }
+                }));
+                return response.data.message.content;
+            } else {
+                return 'No response from local model.';
+            }
+        })
+        .catch(error => {
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 401) {
+                    savedSettingsStorage.set(prev => ({
+                        ...prev,
+                        apiErrorStatus: { type: 'AUTH', timestamp: Date.now() }
+                    }));
+                    throw new Error('Authentication failed. Please check your local model settings.');
                 } else if (error.response?.status === 429) {
                     savedSettingsStorage.set(prev => ({
                         ...prev,
