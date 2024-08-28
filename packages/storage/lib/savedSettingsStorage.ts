@@ -9,7 +9,9 @@ type UserSettings = {
     filterEnabled: boolean;
     hideShortsEnabled: boolean;
     llmModel: string;
-    aiProvider: 'openai' | 'anthropic' | 'groq';
+    aiProvider: 'openai' | 'anthropic' | 'groq' | 'local';
+    localModelEndpoint: string;
+    localModelName: string;
     apiErrorStatus: {
         type: 'AUTH' | 'RATE_LIMIT' | null;
         timestamp: number | null;
@@ -28,6 +30,8 @@ const defaultSettings: UserSettings = {
     hideShortsEnabled: false,
     llmModel: 'gpt-4o-mini',
     aiProvider: 'openai',
+    localModelEndpoint: '',
+    localModelName: '',
     apiErrorStatus: {
         type: null,
         timestamp: null,
